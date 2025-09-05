@@ -48,60 +48,9 @@ USERS = [
     },
     {
         'id': '5', 
-        'name': 'Maria D\'Souza', 
+        'name': "Maria D'Souza", 
         'email': 'maria@student.com', 
         'avatar': 'https://via.placeholder.com/40x40'
-    }
-]
-
-POSTS = [
-    {
-        'id': '1',
-        'type': 'review',
-        'user': {'id': '1', 'name': 'Sarah Chen', 'avatar': 'https://via.placeholder.com/40x40'},
-        'rating': 4.5,
-        'restaurant': 'Campus Cafe',
-        'menuItem': 'Chicken Biryani',
-        'price': 120,
-        'comment': 'Just had the chicken biryani from Campus Cafe and it\'s absolutely delicious! Perfect portion size and great value for money.',
-        'image': 'https://via.placeholder.com/600x300',
-        'likes': 24,
-        'comments': 8,
-        'timeAgo': '2 hours ago',
-        'expiresIn': '18 hours',
-        'created_at': datetime.now() - timedelta(hours=2)
-    },
-    {
-        'id': '2',
-        'type': 'homemade',
-        'user': {'id': '2', 'name': 'Raj Patel', 'avatar': 'https://via.placeholder.com/40x40'},
-        'title': 'Authentic Gujarati Thali',
-        'description': 'Complete thali with dal, sabzi, rotis, rice, and sweet. Made with love by my mom!',
-        'price': 80,
-        'image': 'https://via.placeholder.com/600x300',
-        'location': 'Hostel Block C',
-        'isVegetarian': True,
-        'servingSize': 1,
-        'likes': 15,
-        'comments': 5,
-        'timeAgo': '4 hours ago',
-        'expiresIn': '14 hours',
-        'created_at': datetime.now() - timedelta(hours=4)
-    },
-    {
-        'id': '3',
-        'type': 'review',
-        'user': {'id': '3', 'name': 'Priya Sharma', 'avatar': 'https://via.placeholder.com/40x40'},
-        'rating': 3.0,
-        'restaurant': 'Spice Junction',
-        'menuItem': 'Paneer Tikka',
-        'price': 150,
-        'comment': 'The paneer tikka was okay. The portion was good but it was a bit too spicy for my taste.',
-        'likes': 8,
-        'comments': 3,
-        'timeAgo': '6 hours ago',
-        'expiresIn': '12 hours',
-        'created_at': datetime.now() - timedelta(hours=6)
     }
 ]
 
@@ -156,7 +105,7 @@ HOTELS = [
 HOMEMADE_FOOD = [
     {
         'id': '1',
-        'seller': {'id': '2', 'name': 'Raj Patel', 'avatar': 'https://via.placeholder.com/30x30'},
+        'seller': USERS[1],  # Raj Patel
         'title': 'Authentic Gujarati Thali',
         'description': 'Complete thali with dal, sabzi, rotis, rice, and sweet',
         'price': 80,
@@ -164,25 +113,23 @@ HOMEMADE_FOOD = [
         'location': 'Block C',
         'isVegetarian': True,
         'servingSize': 1,
-        'expiresIn': '14h left',
         'created_at': datetime.now() - timedelta(hours=10)
     },
     {
         'id': '2',
-        'seller': {'id': '4', 'name': 'Fatima Khan', 'avatar': 'https://via.placeholder.com/30x30'},
-        'title': 'Mom\'s Special Biryani',
+        'seller': USERS[3],  # Fatima Khan
+        'title': "Mom's Special Biryani",
         'description': 'Hyderabadi style chicken biryani with raita and shorba',
         'price': 200,
         'image': 'https://via.placeholder.com/250x200',
         'location': 'Block A',
         'isVegetarian': False,
         'servingSize': 2,
-        'expiresIn': '8h left',
         'created_at': datetime.now() - timedelta(hours=16)
     },
     {
         'id': '3',
-        'seller': {'id': '5', 'name': 'Maria D\'Souza', 'avatar': 'https://via.placeholder.com/30x30'},
+        'seller': USERS[4],  # Maria D'Souza
         'title': 'Fresh Pasta & Garlic Bread',
         'description': 'Creamy white sauce pasta with homemade garlic bread',
         'price': 120,
@@ -190,8 +137,52 @@ HOMEMADE_FOOD = [
         'location': 'Block B',
         'isVegetarian': True,
         'servingSize': 1,
-        'expiresIn': '20h left',
         'created_at': datetime.now() - timedelta(hours=4)
+    }
+]
+
+POSTS = [
+    {
+        'id': '1',
+        'type': 'review',
+        'user': USERS[0],  # Sarah Chen
+        'rating': 4.5,
+        'restaurant': 'Campus Cafe',
+        'menuItem': 'Chicken Biryani',
+        'price': 120,
+        'comment': "Just had the chicken biryani from Campus Cafe and it's absolutely delicious! Perfect portion size and great value for money.",
+        'image': 'https://via.placeholder.com/600x300',
+        'likes': 24,
+        'comments': 8,
+        'created_at': datetime.now() - timedelta(hours=2)
+    },
+    {
+        'id': '2',
+        'type': 'homemade',
+        'user': USERS[1],  # Raj Patel
+        'title': 'Authentic Gujarati Thali',
+        'description': 'Complete thali with dal, sabzi, rotis, rice, and sweet. Made with love by my mom!',
+        'price': 80,
+        'image': 'https://via.placeholder.com/600x300',
+        'location': 'Hostel Block C',
+        'isVegetarian': True,
+        'servingSize': 1,
+        'likes': 15,
+        'comments': 5,
+        'created_at': datetime.now() - timedelta(hours=4)
+    },
+    {
+        'id': '3',
+        'type': 'review',
+        'user': USERS[2],  # Priya Sharma
+        'rating': 3.0,
+        'restaurant': 'Spice Junction',
+        'menuItem': 'Paneer Tikka',
+        'price': 150,
+        'comment': 'The paneer tikka was okay. The portion was good but it was a bit too spicy for my taste.',
+        'likes': 8,
+        'comments': 3,
+        'created_at': datetime.now() - timedelta(hours=6)
     }
 ]
 
@@ -200,15 +191,7 @@ HOMEMADE_FOOD = [
 # ============================================================================
 
 def calculate_time_remaining(created_at):
-    """
-    Calculate time remaining until 24-hour expiry.
-    
-    Args:
-        created_at (datetime): When the content was created
-        
-    Returns:
-        str: Human-readable time remaining
-    """
+    """Calculate time remaining until 24-hour expiry."""
     expires_at = created_at + timedelta(hours=24)
     remaining = expires_at - datetime.now()
     
@@ -224,15 +207,7 @@ def calculate_time_remaining(created_at):
 
 
 def get_time_ago(created_at):
-    """
-    Get human-readable time ago string.
-    
-    Args:
-        created_at (datetime): When the content was created
-        
-    Returns:
-        str: Human-readable time ago
-    """
+    """Get human-readable time ago string."""
     diff = datetime.now() - created_at
     hours = int(diff.total_seconds() // 3600)
     
@@ -283,12 +258,56 @@ def index():
     for food in HOMEMADE_FOOD:
         food['expiresIn'] = calculate_time_remaining(food['created_at'])
     
-    return render_template('index.html', 
-                         posts=POSTS, 
-                         hotels=HOTELS, 
+    # Prepare highlight data
+    top_restaurants = [
+        {
+            'badge': 'Most Ordered',
+            'name': 'Campus Cafe',
+            'dish': 'Chicken Biryani',
+            'rating': 4.8,
+            'price': 120
+        },
+        {
+            'badge': 'Best Value',
+            'name': 'Spice Junction',
+            'dish': 'Veg Thali',
+            'rating': 4.5,
+            'price': 80
+        }
+    ]
+    
+    top_homemade = [
+        {
+            'badge': 'Trending',
+            'title': 'Gujarati Thali',
+            'location': 'Block C',
+            'expiresIn': '14h left',
+            'price': 80
+        },
+        {
+            'badge': 'Just Added',
+            'title': "Mom's Biryani",
+            'location': 'Block A',
+            'expiresIn': '8h left',
+            'price': 200
+        }
+    ]
+    
+    # Calculate stats
+    daily_specials = len(HOTELS) * 3  # Assuming 3 specials per hotel
+    homemade_count = len(HOMEMADE_FOOD)
+    review_count = len([p for p in POSTS if p['type'] == 'review'])
+    
+    return render_template('index.html',
+                         posts=POSTS,
+                         hotels=HOTELS,
                          homemade_food=HOMEMADE_FOOD,
-                         current_user=session.get('user'))
-
+                         current_user=session.get('user'),
+                         top_restaurants=top_restaurants,
+                         top_homemade=top_homemade,
+                         daily_specials=daily_specials,
+                         homemade_count=homemade_count,
+                         review_count=review_count)
 
 # ============================================================================
 # AUTHENTICATION ROUTES
@@ -483,28 +502,14 @@ def create_post():
         })
     
     POSTS.insert(0, new_post)  # Add to beginning of list
+    
+    new_post['timeAgo'] = get_time_ago(new_post['created_at'])
+    new_post['expiresIn'] = calculate_time_remaining(new_post['created_at'])
+    
     return jsonify({'success': True, 'post': new_post})
 
-
 # ============================================================================
-# ERROR HANDLERS
+# RUN APPLICATION
 # ============================================================================
-
-@app.errorhandler(404)
-def not_found(error):
-    """Handle 404 errors."""
-    return render_template('index.html'), 404
-
-
-@app.errorhandler(500)
-def internal_error(error):
-    """Handle 500 errors."""
-    return jsonify({'error': 'Internal server error'}), 500
-
-
-# ============================================================================
-# APPLICATION RUNNER
-# ============================================================================
-
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True)
