@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MealMate - Campus Food Hub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-utensils"></i>
+                <span>MealMate</span>
+            </div>
+            <div class="nav-links">
+                <a href="#newsfeed" class="nav-link active">Newsfeed</a>
+                <a href="#hotels" class="nav-link">Hotel Menus</a>
+                <a href="#homemade" class="nav-link">Homemade Food</a>
+                <a href="#about" class="nav-link">About</a>
+            </div>
+            <div class="nav-auth">
+                <button class="btn btn-outline">Login</button>
+                <button class="btn btn-primary">Sign Up</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Discover Amazing Food Around Campus</h1>
+            <p>Connect with local hotels and fellow students for the best food experiences</p>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">50+</span>
+                    <span class="stat-label">Partner Hotels</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">1200+</span>
+                    <span class="stat-label">Active Students</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">24hrs</span>
+                    <span class="stat-label">Fresh Reviews</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Newsfeed Section -->
+        <section id="newsfeed" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2><i class="fas fa-newspaper"></i> Today's Food Feed</h2>
+                    <p>Real-time reviews and posts from your campus community</p>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-filter="all">All Posts</button>
+                    <button class="filter-tab" data-filter="reviews">Menu Reviews</button>
+                    <button class="filter-tab" data-filter="homemade">Homemade Food</button>
+                </div>
+
+                <!-- Posts Container -->
+                <div class="posts-container">
+                    <!-- Menu Review Post -->
+                    <div class="post-card review-post" data-type="reviews">
+                        <div class="post-header">
+                            <div class="user-info">
+                                <img src="https://via.placeholder.com/40x40" alt="User" class="user-avatar">
+                                <div class="user-details">
+                                    <h4>Sarah Chen</h4>
+                                    <span class="post-time">2 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="post-rating">
+                                <span class="rating">4.5</span>
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="restaurant-tag">
+                                <i class="fas fa-store"></i>
+                                <span>Campus Cafe - Chicken Biryani</span>
+                                <span class="price">₹120</span>
+                            </div>
+                            <p>Just had the chicken biryani from Campus Cafe and it's absolutely delicious! Perfect portion size and great value for money. The rice was perfectly cooked and the chicken was tender. Highly recommend!</p>
+                            <div class="post-image">
+                                <img src="https://via.placeholder.com/600x300" alt="Food Image">
+                            </div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn"><i class="fas fa-thumbs-up"></i> 24</button>
+                            <button class="action-btn"><i class="fas fa-comment"></i> 8</button>
+                            <button class="action-btn"><i class="fas fa-share"></i> Share</button>
+                            <div class="time-remaining">
+                                <i class="fas fa-clock"></i>
+                                <span>Expires in 18 hours</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Homemade Food Post -->
+                    <div class="post-card homemade-post" data-type="homemade">
+                        <div class="post-header">
+                            <div class="user-info">
+                                <img src="https://via.placeholder.com/40x40" alt="User" class="user-avatar">
+                                <div class="user-details">
+                                    <h4>Raj Patel</h4>
+                                    <span class="post-time">4 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="homemade-badge">
+                                <i class="fas fa-home"></i>
+                                <span>Homemade</span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <h3>Fresh Gujarati Thali Available!</h3>
+                            <p>Authentic homemade Gujarati thali with dal, sabzi, rotis, rice, and sweet. Made with love by my mom! Available for pickup from Hostel Block C.</p>
+                            <div class="post-image">
+                                <img src="https://via.placeholder.com/600x300" alt="Gujarati Thali">
+                            </div>
+                            <div class="food-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-rupee-sign"></i>
+                                    <span>₹80 per plate</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Available until 8 PM</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Hostel Block C, Room 204</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn"><i class="fas fa-heart"></i> 15</button>
+                            <button class="action-btn"><i class="fas fa-comment"></i> 5</button>
+                            <button class="action-btn btn-primary"><i class="fas fa-phone"></i> Contact</button>
+                            <div class="time-remaining">
+                                <i class="fas fa-clock"></i>
+                                <span>Expires in 14 hours</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Another Review Post -->
+                    <div class="post-card review-post" data-type="reviews">
+                        <div class="post-header">
+                            <div class="user-info">
+                                <img src="https://via.placeholder.com/40x40" alt="User" class="user-avatar">
+                                <div class="user-details">
+                                    <h4>Priya Sharma</h4>
+                                    <span class="post-time">6 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="post-rating">
+                                <span class="rating">3.0</span>
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="restaurant-tag">
+                                <i class="fas fa-store"></i>
+                                <span>Spice Junction - Paneer Tikka</span>
+                                <span class="price">₹150</span>
+                            </div>
+                            <p>The paneer tikka was okay. The portion was good but it was a bit too spicy for my taste. The presentation was nice though. Might try their other items next time.</p>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn"><i class="fas fa-thumbs-up"></i> 8</button>
+                            <button class="action-btn"><i class="fas fa-comment"></i> 3</button>
+                            <button class="action-btn"><i class="fas fa-share"></i> Share</button>
+                            <div class="time-remaining">
+                                <i class="fas fa-clock"></i>
+                                <span>Expires in 12 hours</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hotels Section -->
+        <section id="hotels" class="section bg-light">
+            <div class="container">
+                <div class="section-header">
+                    <h2><i class="fas fa-store"></i> Partner Hotels & Restaurants</h2>
+                    <p>Explore today's menus from your favorite campus eateries</p>
+                </div>
+
+                <div class="hotels-grid">
+                    <div class="hotel-card">
+                        <div class="hotel-header">
+                            <img src="https://via.placeholder.com/300x150" alt="Campus Cafe" class="hotel-image">
+                            <div class="hotel-overlay">
+                                <div class="hotel-rating">
+                                    <span>4.2</span>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hotel-content">
+                            <h3>Campus Cafe</h3>
+                            <p>Traditional Indian cuisine with modern twist</p>
+                            <div class="hotel-info">
+                                <span><i class="fas fa-map-marker-alt"></i> Near Main Gate</span>
+                                <span><i class="fas fa-clock"></i> 8 AM - 10 PM</span>
+                            </div>
+                            <div class="menu-preview">
+                                <h4>Today's Special Menu</h4>
+                                <div class="menu-items">
+                                    <div class="menu-item">
+                                        <span>Chicken Biryani</span>
+                                        <span class="price">₹120</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span>Veg Thali</span>
+                                        <span class="price">₹80</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span>Masala Dosa</span>
+                                        <span class="price">₹60</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary full-width">View Full Menu & Reviews</button>
+                        </div>
+                    </div>
+
+                    <div class="hotel-card">
+                        <div class="hotel-header">
+                            <img src="https://via.placeholder.com/300x150" alt="Spice Junction" class="hotel-image">
+                            <div class="hotel-overlay">
+                                <div class="hotel-rating">
+                                    <span>3.8</span>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hotel-content">
+                            <h3>Spice Junction</h3>
+                            <p>North Indian specialties and Chinese fusion</p>
+                            <div class="hotel-info">
+                                <span><i class="fas fa-map-marker-alt"></i> Food Court</span>
+                                <span><i class="fas fa-clock"></i> 10 AM - 11 PM</span>
+                            </div>
+                            <div class="menu-preview">
+                                <h4>Today's Special Menu</h4>
+                                <div class="menu-items">
+                                    <div class="menu-item">
+                                        <span>Paneer Tikka</span>
+                                        <span class="price">₹150</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span>Chicken Fried Rice</span>
+                                        <span class="price">₹100</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span>Veg Noodles</span>
+                                        <span class="price">₹80</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary full-width">View Full Menu & Reviews</button>
+                        </div>
+                    </div>
+
+                    <div class="hotel-card">
+                        <div class="hotel-header">
+                            <img src="https://via.placeholder.com/300x150" alt="Quick Bites" class="hotel-image">
+                            <div class="hotel-overlay">
+                                <div class="hotel-rating">
+                                    <span>4.0</span>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hotel-content">
+                            <h3>Quick Bites</h3>
+                            <p>Fast food and healthy snacks</p>
+                            <div class="hotel-info">
+                                <span><i class="fas fa-map-marker-alt"></i> Library Block</span>
+                                <span><i class="fas fa-clock"></i> 7 AM - 9 PM</span>
+                            </div>
+                            <div class="menu-preview">
+                                <h4>Today's Special Menu</h4>
+                                <div class="menu-items">
+                                    <div class="menu-item">
+                                        <span>Club Sandwich</span>
+                                        <span class="price">₹90</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span>Fresh Fruit Bowl</span>
+                                        <span class="price">₹50</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span>Cold Coffee</span>
+                                        <span class="price">₹40</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary full-width">View Full Menu & Reviews</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Homemade Food Section -->
+        <section id="homemade" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2><i class="fas fa-home"></i> Homemade Food Marketplace</h2>
+                    <p>Discover delicious homemade food from fellow students</p>
+                </div>
+
+                <div class="homemade-controls">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Post Your Food
+                    </button>
+                    <div class="sort-options">
+                        <select class="form-select">
+                            <option>Sort by: Latest</option>
+                            <option>Sort by: Price (Low to High)</option>
+                            <option>Sort by: Price (High to Low)</option>
+                            <option>Sort by: Location</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="homemade-grid">
+                    <div class="homemade-card">
+                        <div class="card-image">
+                            <img src="https://via.placeholder.com/250x200" alt="Homemade Food">
+                            <div class="time-badge">
+                                <i class="fas fa-clock"></i>
+                                <span>14h left</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3>Authentic Gujarati Thali</h3>
+                            <div class="seller-info">
+                                <img src="https://via.placeholder.com/30x30" alt="Seller" class="seller-avatar">
+                                <span>by Raj Patel</span>
+                            </div>
+                            <p>Complete thali with dal, sabzi, rotis, rice, and sweet</p>
+                            <div class="food-specs">
+                                <span class="spec"><i class="fas fa-leaf"></i> Vegetarian</span>
+                                <span class="spec"><i class="fas fa-users"></i> Serves 1</span>
+                            </div>
+                            <div class="card-footer">
+                                <div class="price">₹80</div>
+                                <div class="location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Block C</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary full-width">Contact Seller</button>
+                        </div>
+                    </div>
+
+                    <div class="homemade-card">
+                        <div class="card-image">
+                            <img src="https://via.placeholder.com/250x200" alt="Homemade Food">
+                            <div class="time-badge">
+                                <i class="fas fa-clock"></i>
+                                <span>8h left</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3>Mom's Special Biryani</h3>
+                            <div class="seller-info">
+                                <img src="https://via.placeholder.com/30x30" alt="Seller" class="seller-avatar">
+                                <span>by Fatima Khan</span>
+                            </div>
+                            <p>Hyderabadi style chicken biryani with raita and shorba</p>
+                            <div class="food-specs">
+                                <span class="spec"><i class="fas fa-drumstick-bite"></i> Non-Veg</span>
+                                <span class="spec"><i class="fas fa-users"></i> Serves 2</span>
+                            </div>
+                            <div class="card-footer">
+                                <div class="price">₹200</div>
+                                <div class="location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Block A</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary full-width">Contact Seller</button>
+                        </div>
+                    </div>
+
+                    <div class="homemade-card">
+                        <div class="card-image">
+                            <img src="https://via.placeholder.com/250x200" alt="Homemade Food">
+                            <div class="time-badge">
+                                <i class="fas fa-clock"></i>
+                                <span>20h left</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3>Fresh Pasta & Garlic Bread</h3>
+                            <div class="seller-info">
+                                <img src="https://via.placeholder.com/30x30" alt="Seller" class="seller-avatar">
+                                <span>by Maria D'Souza</span>
+                            </div>
+                            <p>Creamy white sauce pasta with homemade garlic bread</p>
+                            <div class="food-specs">
+                                <span class="spec"><i class="fas fa-leaf"></i> Vegetarian</span>
+                                <span class="spec"><i class="fas fa-users"></i> Serves 1</span>
+                            </div>
+                            <div class="card-footer">
+                                <div class="price">₹120</div>
+                                <div class="location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Block B</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary full-width">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Login to MealMate</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form class="login-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary full-width">Login</button>
+                    <div class="form-links">
+                        <a href="#">Forgot Password?</a>
+                        <a href="#">Create Account</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>MealMate</h3>
+                    <p>Connecting campus food lovers since 2024</p>
+                </div>
+                <div class="footer-section">
+                    <h4>For Students</h4>
+                    <ul>
+                        <li><a href="#">Browse Menus</a></li>
+                        <li><a href="#">Post Reviews</a></li>
+                        <li><a href="#">Sell Homemade Food</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>For Hotels</h4>
+                    <ul>
+                        <li><a href="#">Partner with Us</a></li>
+                        <li><a href="#">Update Menu</a></li>
+                        <li><a href="#">View Analytics</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 MealMate. Made with ❤️ for campus food lovers.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
