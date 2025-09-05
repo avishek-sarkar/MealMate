@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
 """
 MealMate Flask Application Runner
+Cross-platform application launcher
 """
 
 import os

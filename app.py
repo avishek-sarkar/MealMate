@@ -1,24 +1,57 @@
+"""
+MealMate - Campus Food Hub
+A Flask web application for connecting students with local food providers.
+"""
+
 from flask import Flask, render_template, jsonify, request, session, redirect, url_for
 from flask_cors import CORS
 import os
 from datetime import datetime, timedelta
-import json
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
+# Initialize Flask application
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-change-in-production')
 CORS(app)
 
-# Mock data for development
+# ============================================================================
+# MOCK DATA - Replace with database in production
+# ============================================================================
+
 USERS = [
-    {'id': '1', 'name': 'Sarah Chen', 'email': 'sarah@student.com', 'avatar': 'https://via.placeholder.com/40x40'},
-    {'id': '2', 'name': 'Raj Patel', 'email': 'raj@student.com', 'avatar': 'https://via.placeholder.com/40x40'},
-    {'id': '3', 'name': 'Priya Sharma', 'email': 'priya@student.com', 'avatar': 'https://via.placeholder.com/40x40'},
-    {'id': '4', 'name': 'Fatima Khan', 'email': 'fatima@student.com', 'avatar': 'https://via.placeholder.com/40x40'},
-    {'id': '5', 'name': 'Maria D\'Souza', 'email': 'maria@student.com', 'avatar': 'https://via.placeholder.com/40x40'}
+    {
+        'id': '1', 
+        'name': 'Sarah Chen', 
+        'email': 'sarah@student.com', 
+        'avatar': 'https://via.placeholder.com/40x40'
+    },
+    {
+        'id': '2', 
+        'name': 'Raj Patel', 
+        'email': 'raj@student.com', 
+        'avatar': 'https://via.placeholder.com/40x40'
+    },
+    {
+        'id': '3', 
+        'name': 'Priya Sharma', 
+        'email': 'priya@student.com', 
+        'avatar': 'https://via.placeholder.com/40x40'
+    },
+    {
+        'id': '4', 
+        'name': 'Fatima Khan', 
+        'email': 'fatima@student.com', 
+        'avatar': 'https://via.placeholder.com/40x40'
+    },
+    {
+        'id': '5', 
+        'name': 'Maria D\'Souza', 
+        'email': 'maria@student.com', 
+        'avatar': 'https://via.placeholder.com/40x40'
+    }
 ]
 
 POSTS = [
@@ -162,9 +195,20 @@ HOMEMADE_FOOD = [
     }
 ]
 
-# Helper functions
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
 def calculate_time_remaining(created_at):
-    """Calculate time remaining until 24-hour expiry"""
+    """
+    Calculate time remaining until 24-hour expiry.
+    
+    Args:
+        created_at (datetime): When the content was created
+        
+    Returns:
+        str: Human-readable time remaining
+    """
     expires_at = created_at + timedelta(hours=24)
     remaining = expires_at - datetime.now()
     
@@ -178,8 +222,17 @@ def calculate_time_remaining(created_at):
     
     return f"{hours}h left"
 
+
 def get_time_ago(created_at):
-    """Get human-readable time ago string"""
+    """
+    Get human-readable time ago string.
+    
+    Args:
+        created_at (datetime): When the content was created
+        
+    Returns:
+        str: Human-readable time ago
+    """
     diff = datetime.now() - created_at
     hours = int(diff.total_seconds() // 3600)
     
@@ -194,22 +247,32 @@ def get_time_ago(created_at):
         days = hours // 24
         return f"{days} day{'s' if days > 1 else ''} ago"
 
+
 def filter_expired_content():
-    """Remove content older than 24 hours"""
+    """Remove content older than 24 hours."""
     current_time = datetime.now()
     
-    # Filter posts
-    global POSTS
+    global POSTS, HOMEMADE_FOOD
     POSTS = [post for post in POSTS if (current_time - post['created_at']).total_seconds() < 86400]
-    
-    # Filter homemade food
-    global HOMEMADE_FOOD
     HOMEMADE_FOOD = [food for food in HOMEMADE_FOOD if (current_time - food['created_at']).total_seconds() < 86400]
 
-# Routes
+
+def find_user_by_email(email):
+    """Find user by email address."""
+    return next((user for user in USERS if user['email'] == email), None)
+
+
+def find_post_by_id(post_id):
+    """Find post by ID."""
+    return next((post for post in POSTS if post['id'] == post_id), None)
+
+
+# ============================================================================
+# ROUTES
+# ============================================================================
 @app.route('/')
 def index():
-    """Main page with newsfeed"""
+    """Main page with newsfeed."""
     filter_expired_content()
     
     # Update time-related fields
@@ -226,42 +289,45 @@ def index():
                          homemade_food=HOMEMADE_FOOD,
                          current_user=session.get('user'))
 
+
+# ============================================================================
+# AUTHENTICATION ROUTES
+# ============================================================================
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Handle login"""
+    """Handle user login."""
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
         
-        # Simple authentication (in production, use proper password hashing)
-        user = next((u for u in USERS if u['email'] == email), None)
+        if not email or not password:
+            return jsonify({'success': False, 'error': 'Email and password required'}), 400
+        
+        user = find_user_by_email(email)
         
         if user:
             session['user'] = user
-            if request.headers.get('Content-Type') == 'application/json':
-                return jsonify({'success': True, 'user': user})
             return redirect(url_for('index'))
         else:
-            if request.headers.get('Content-Type') == 'application/json':
-                return jsonify({'success': False, 'error': 'Invalid credentials'})
             return render_template('index.html', error='Invalid credentials')
     
     return redirect(url_for('index'))
 
+
 @app.route('/register', methods=['POST'])
 def register():
-    """Handle registration"""
-    name = request.form.get('name')
-    email = request.form.get('email')
-    password = request.form.get('password')
+    """Handle user registration."""
+    name = request.form.get('name', '').strip()
+    email = request.form.get('email', '').strip()
+    password = request.form.get('password', '')
     
-    # Check if user already exists
-    if any(u['email'] == email for u in USERS):
-        if request.headers.get('Content-Type') == 'application/json':
-            return jsonify({'success': False, 'error': 'Email already registered'})
-        return redirect(url_for('index'))
+    if not all([name, email, password]):
+        return jsonify({'success': False, 'error': 'All fields required'}), 400
     
-    # Create new user
+    if find_user_by_email(email):
+        return jsonify({'success': False, 'error': 'Email already registered'}), 400
+    
     new_user = {
         'id': str(len(USERS) + 1),
         'name': name,
@@ -272,27 +338,26 @@ def register():
     USERS.append(new_user)
     session['user'] = new_user
     
-    if request.headers.get('Content-Type') == 'application/json':
-        return jsonify({'success': True, 'user': new_user})
-    
     return redirect(url_for('index'))
+
 
 @app.route('/logout')
 def logout():
-    """Handle logout"""
+    """Handle user logout."""
     session.pop('user', None)
     return redirect(url_for('index'))
 
+# ============================================================================
+# API ENDPOINTS
+# ============================================================================
+
 @app.route('/api/posts')
 def api_posts():
-    """API endpoint for posts"""
+    """API endpoint for posts with optional filtering."""
     filter_expired_content()
     
     post_type = request.args.get('type', 'all')
-    
-    filtered_posts = POSTS
-    if post_type != 'all':
-        filtered_posts = [post for post in POSTS if post['type'] == post_type]
+    filtered_posts = POSTS if post_type == 'all' else [post for post in POSTS if post['type'] == post_type]
     
     # Update time fields
     for post in filtered_posts:
@@ -301,14 +366,16 @@ def api_posts():
     
     return jsonify(filtered_posts)
 
+
 @app.route('/api/hotels')
 def api_hotels():
-    """API endpoint for hotels"""
+    """API endpoint for hotels."""
     return jsonify(HOTELS)
+
 
 @app.route('/api/homemade-food')
 def api_homemade_food():
-    """API endpoint for homemade food"""
+    """API endpoint for homemade food with sorting."""
     filter_expired_content()
     
     sort_by = request.args.get('sort', 'latest')
@@ -317,6 +384,7 @@ def api_homemade_food():
     for food in HOMEMADE_FOOD:
         food['expiresIn'] = calculate_time_remaining(food['created_at'])
     
+    # Sort based on parameter
     if sort_by == 'price-low':
         HOMEMADE_FOOD.sort(key=lambda x: x['price'])
     elif sort_by == 'price-high':
@@ -326,65 +394,79 @@ def api_homemade_food():
     
     return jsonify(HOMEMADE_FOOD)
 
+
 @app.route('/api/posts/<post_id>/like', methods=['POST'])
 def like_post(post_id):
-    """Like/unlike a post"""
+    """Like/unlike a post."""
     if 'user' not in session:
-        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
     
-    post = next((p for p in POSTS if p['id'] == post_id), None)
+    post = find_post_by_id(post_id)
     if not post:
         return jsonify({'success': False, 'error': 'Post not found'}), 404
     
     # Toggle like (in production, track which users liked which posts)
-    action = request.json.get('action', 'like')
+    action = request.json.get('action', 'like') if request.json else 'like'
     if action == 'like':
-        post['likes'] += 1
+        post['likes'] = post.get('likes', 0) + 1
     else:
-        post['likes'] = max(0, post['likes'] - 1)
+        post['likes'] = max(0, post.get('likes', 0) - 1)
     
     return jsonify({'success': True, 'likes': post['likes']})
 
+
 @app.route('/api/posts', methods=['POST'])
 def create_post():
-    """Create a new post"""
+    """Create a new post."""
     if 'user' not in session:
-        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+    
+    if not request.json:
+        return jsonify({'success': False, 'error': 'JSON data required'}), 400
     
     user = session['user']
     post_type = request.json.get('type')
     
+    if post_type not in ['review', 'homemade']:
+        return jsonify({'success': False, 'error': 'Invalid post type'}), 400
+    
+    new_post = {
+        'id': str(len(POSTS) + 1),
+        'type': post_type,
+        'user': user,
+        'likes': 0,
+        'comments': 0,
+        'created_at': datetime.now()
+    }
+    
     if post_type == 'review':
-        new_post = {
-            'id': str(len(POSTS) + 1),
-            'type': 'review',
-            'user': user,
+        required_fields = ['rating', 'restaurant', 'menuItem', 'price', 'comment']
+        if not all(field in request.json for field in required_fields):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+            
+        new_post.update({
             'rating': float(request.json.get('rating')),
             'restaurant': request.json.get('restaurant'),
             'menuItem': request.json.get('menuItem'),
             'price': int(request.json.get('price')),
             'comment': request.json.get('comment'),
-            'image': request.json.get('image', ''),
-            'likes': 0,
-            'comments': 0,
-            'created_at': datetime.now()
-        }
+            'image': request.json.get('image', '')
+        })
+        
     elif post_type == 'homemade':
-        new_post = {
-            'id': str(len(POSTS) + 1),
-            'type': 'homemade',
-            'user': user,
+        required_fields = ['title', 'description', 'price', 'location']
+        if not all(field in request.json for field in required_fields):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+            
+        new_post.update({
             'title': request.json.get('title'),
             'description': request.json.get('description'),
             'price': int(request.json.get('price')),
             'image': request.json.get('image', ''),
             'location': request.json.get('location'),
             'isVegetarian': request.json.get('isVegetarian', False),
-            'servingSize': int(request.json.get('servingSize', 1)),
-            'likes': 0,
-            'comments': 0,
-            'created_at': datetime.now()
-        }
+            'servingSize': int(request.json.get('servingSize', 1))
+        })
         
         # Also add to homemade food list
         HOMEMADE_FOOD.append({
@@ -402,6 +484,27 @@ def create_post():
     
     POSTS.insert(0, new_post)  # Add to beginning of list
     return jsonify({'success': True, 'post': new_post})
+
+
+# ============================================================================
+# ERROR HANDLERS
+# ============================================================================
+
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors."""
+    return render_template('index.html'), 404
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 errors."""
+    return jsonify({'error': 'Internal server error'}), 500
+
+
+# ============================================================================
+# APPLICATION RUNNER
+# ============================================================================
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
