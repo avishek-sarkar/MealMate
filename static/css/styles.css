@@ -1162,3 +1162,296 @@ body {
         font-size: 14px;
     }
 }
+
+/* ============================================================================
+   DASHBOARD & POST-LOGIN FEATURES
+   ============================================================================ */
+
+/* Dashboard Styles */
+.dashboard-modal .modal-content {
+    width: 90%;
+    max-width: 900px;
+    height: 80vh;
+    overflow-y: auto;
+}
+
+.dashboard-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.dashboard-actions .btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+}
+
+.dashboard-tabs .tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.dashboard-tabs .tab-btn.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.dashboard-tab-content {
+    display: none;
+}
+
+.dashboard-tab-content.active {
+    display: block;
+}
+
+.dashboard-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dashboard-post {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.dashboard-post .post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.dashboard-post .post-header h4 {
+    margin: 0;
+    color: var(--text-dark);
+    flex-grow: 1;
+}
+
+.dashboard-post .rating {
+    font-size: 18px;
+}
+
+.dashboard-post .price {
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 18px;
+}
+
+.dashboard-post .status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.dashboard-post .status.available {
+    background: #d4edda;
+    color: #155724;
+}
+
+.dashboard-post .status.unavailable {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.dashboard-post .post-details {
+    display: flex;
+    gap: 15px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+.dashboard-post .post-details span {
+    font-size: 14px;
+    color: #666;
+}
+
+.dashboard-post .post-time {
+    color: #888;
+    font-size: 12px;
+}
+
+.no-content {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 40px 20px;
+}
+
+/* Post Form Styles */
+.post-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Rating Input Styles */
+.rating-input {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rating-input input[type="radio"] {
+    display: none;
+}
+
+.rating-input label {
+    padding: 8px 12px;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-size: 16px;
+}
+
+.rating-input label:hover {
+    border-color: var(--primary-color);
+    background: #f8f9fa;
+}
+
+.rating-input input[type="radio"]:checked + label {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* User Menu Styles */
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-avatar-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Responsive Design for Dashboard */
+@media (max-width: 768px) {
+    .dashboard-modal .modal-content {
+        width: 95%;
+        height: 90vh;
+    }
+    
+    .dashboard-actions {
+        flex-direction: column;
+    }
+    
+    .dashboard-actions .btn {
+        justify-content: center;
+    }
+    
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .user-menu {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .user-menu span {
+        order: -1;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Settings Styles */
+.settings-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+}
+
+.settings-tabs .tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.settings-tabs .tab-btn.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.settings-tab-content {
+    display: none;
+}
+
+.settings-tab-content.active {
+    display: block;
+}
+
+.settings-form {
+    max-width: 500px;
+}
+
+.settings-form h3 {
+    margin-bottom: 20px;
+    color: var(--text-dark);
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Coming Soon Styles */
+.coming-soon {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.coming-soon h3 {
+    margin-bottom: 15px;
+    color: var(--text-dark);
+}
+
+.coming-soon p {
+    font-style: italic;
+}
+
+/* Remove user avatar styles since we're not using images */
+.user-avatar,
+.user-avatar-small {
+    display: none;
+}

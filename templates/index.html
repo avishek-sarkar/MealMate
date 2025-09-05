@@ -24,8 +24,8 @@
             <div class="nav-auth">
                 {% if current_user %}
                     <div class="user-menu">
-                        <img src="https://via.placeholder.com/40x40" alt="{{ current_user.username }}" class="user-avatar-small">
                         <span>Welcome, {{ current_user.username }}!</span>
+                        <button class="btn btn-primary" onclick="showDashboard()">Dashboard</button>
                         <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
                     </div>
                 {% else %}
@@ -68,7 +68,6 @@
                     {% for post in posts %}
                     <div class="post-card">
                         <div class="post-header">
-                            <img src="{{ post.user.avatar }}" alt="{{ post.user.name }}" class="user-avatar">
                             <div class="post-info">
                                 <h3>{{ post.user.name }}</h3>
                                 <span class="post-time">{{ post.timeAgo }}</span>
@@ -330,6 +329,370 @@
                         <a href="#" onclick="showLoginModal()">Already have an account? Login</a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Modal -->
+    <div id="dashboardModal" class="modal">
+        <div class="modal-content dashboard-modal">
+            <div class="modal-header">
+                <h2 id="dashboardTitle">My Dashboard</h2>
+                <span class="close" onclick="closeModal('dashboardModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- Student Dashboard -->
+                <div id="studentDashboard" class="dashboard-content">
+                    <div class="dashboard-actions">
+                        <button class="btn btn-primary" onclick="showPostReviewModal()">
+                            <i class="fas fa-star"></i> Post Review
+                        </button>
+                        <button class="btn btn-primary" onclick="showPostFoodModal()">
+                            <i class="fas fa-utensils"></i> Post Homemade Food
+                        </button>
+                        <button class="btn btn-secondary" onclick="showSettingsModal()">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                    </div>
+                    
+                    <div class="dashboard-tabs">
+                        <button class="tab-btn active" onclick="switchDashboardTab('reviews')">My Reviews</button>
+                        <button class="tab-btn" onclick="switchDashboardTab('foods')">My Food Posts</button>
+                    </div>
+                    
+                    <div id="reviewsTab" class="dashboard-tab-content active">
+                        <div id="userReviews" class="dashboard-posts">
+                            <!-- Reviews will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div id="foodsTab" class="dashboard-tab-content">
+                        <div id="userFoods" class="dashboard-posts">
+                            <!-- Food posts will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hotel Owner Dashboard -->
+                <div id="hotelDashboard" class="dashboard-content" style="display: none;">
+                    <div class="dashboard-actions">
+                        <button class="btn btn-primary" onclick="showAddMenuModal()">
+                            <i class="fas fa-plus"></i> Add Menu Item
+                        </button>
+                        <button class="btn btn-secondary" onclick="showHotelSettingsModal()">
+                            <i class="fas fa-cog"></i> Business Settings
+                        </button>
+                    </div>
+                    
+                    <div class="dashboard-tabs">
+                        <button class="tab-btn active" onclick="switchHotelTab('menu')">My Menu</button>
+                        <button class="tab-btn" onclick="switchHotelTab('orders')">Orders</button>
+                        <button class="tab-btn" onclick="switchHotelTab('analytics')">Analytics</button>
+                    </div>
+                    
+                    <div id="menuTab" class="dashboard-tab-content active">
+                        <div id="hotelMenu" class="dashboard-posts">
+                            <!-- Menu items will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div id="ordersTab" class="dashboard-tab-content">
+                        <div class="coming-soon">
+                            <h3>Orders Management</h3>
+                            <p>Order tracking and management features coming soon!</p>
+                        </div>
+                    </div>
+                    
+                    <div id="analyticsTab" class="dashboard-tab-content">
+                        <div class="coming-soon">
+                            <h3>Business Analytics</h3>
+                            <p>Sales analytics and performance metrics coming soon!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Review Modal -->
+    <div id="postReviewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Post a Review</h2>
+                <span class="close" onclick="closeModal('postReviewModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="reviewForm" class="post-form">
+                    <div class="form-group">
+                        <label for="restaurantSelect">Restaurant</label>
+                        <select id="restaurantSelect" name="restaurant_id" required onchange="loadMenuItems()">
+                            <option value="">Select a restaurant</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="menuItemSelect">Menu Item</label>
+                        <select id="menuItemSelect" name="menu_item_id" required>
+                            <option value="">Select restaurant first</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rating">Rating</label>
+                        <div class="rating-input">
+                            <input type="radio" name="rating" value="5" id="star5" required>
+                            <label for="star5">⭐⭐⭐⭐⭐</label>
+                            <input type="radio" name="rating" value="4" id="star4">
+                            <label for="star4">⭐⭐⭐⭐</label>
+                            <input type="radio" name="rating" value="3" id="star3">
+                            <label for="star3">⭐⭐⭐</label>
+                            <input type="radio" name="rating" value="2" id="star2">
+                            <label for="star2">⭐⭐</label>
+                            <input type="radio" name="rating" value="1" id="star1">
+                            <label for="star1">⭐</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reviewComment">Your Review</label>
+                        <textarea id="reviewComment" name="comment" placeholder="Share your experience..." rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="reviewImage">Image URL (optional)</label>
+                        <input type="url" id="reviewImage" name="image_url" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Post Review</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Food Modal -->
+    <div id="postFoodModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Post Homemade Food</h2>
+                <span class="close" onclick="closeModal('postFoodModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="foodForm" class="post-form">
+                    <div class="form-group">
+                        <label for="foodTitle">Food Title</label>
+                        <input type="text" id="foodTitle" name="title" placeholder="e.g., Mom's Special Biryani" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="foodDescription">Description</label>
+                        <textarea id="foodDescription" name="description" placeholder="Describe your delicious food..." rows="3" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="foodPrice">Price (₹)</label>
+                            <input type="number" id="foodPrice" name="price" placeholder="80" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="foodQuantity">Quantity</label>
+                            <input type="number" id="foodQuantity" name="quantity" placeholder="5" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="foodType">Food Type</label>
+                            <select id="foodType" name="food_type" required>
+                                <option value="veg">Vegetarian</option>
+                                <option value="non-veg">Non-Vegetarian</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cuisineType">Cuisine</label>
+                            <select id="cuisineType" name="cuisine" required>
+                                <option value="indian">Indian</option>
+                                <option value="north-indian">North Indian</option>
+                                <option value="south-indian">South Indian</option>
+                                <option value="chinese">Chinese</option>
+                                <option value="continental">Continental</option>
+                                <option value="dessert">Dessert</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="foodLocation">Location</label>
+                        <input type="text" id="foodLocation" name="location" placeholder="Hostel A, Room 204" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactInfo">Contact Information</label>
+                        <input type="text" id="contactInfo" name="contact_info" placeholder="WhatsApp: 9876543210" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="foodImageUrl">Image URL (optional)</label>
+                        <input type="url" id="foodImageUrl" name="image_url" placeholder="https://example.com/food.jpg">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Post Food</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Menu Item Modal -->
+    <div id="addMenuModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Menu Item</h2>
+                <span class="close" onclick="closeModal('addMenuModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="menuForm" class="post-form">
+                    <div class="form-group">
+                        <label for="itemName">Item Name</label>
+                        <input type="text" id="itemName" name="item_name" placeholder="e.g., Chicken Biryani" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemDescription">Description</label>
+                        <textarea id="itemDescription" name="description" placeholder="Describe your dish..." rows="3" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemPrice">Price (₹)</label>
+                            <input type="number" id="itemPrice" name="price" placeholder="199" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemCategory">Category</label>
+                            <select id="itemCategory" name="category" required>
+                                <option value="breakfast">Breakfast</option>
+                                <option value="lunch">Lunch</option>
+                                <option value="dinner">Dinner</option>
+                                <option value="snacks">Snacks</option>
+                                <option value="beverages">Beverages</option>
+                                <option value="dessert">Dessert</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemImageUrl">Image URL (optional)</label>
+                        <input type="url" id="itemImageUrl" name="image_url" placeholder="https://example.com/dish.jpg">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Add to Menu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Account Settings</h2>
+                <span class="close" onclick="closeModal('settingsModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="settings-tabs">
+                    <button class="tab-btn active" onclick="switchSettingsTab('profile')">Profile</button>
+                    <button class="tab-btn" onclick="switchSettingsTab('password')">Change Password</button>
+                </div>
+                
+                <!-- Profile Settings -->
+                <div id="profileSettingsTab" class="settings-tab-content active">
+                    <form id="profileForm" class="settings-form">
+                        <h3>Profile Information</h3>
+                        <div class="form-group">
+                            <label for="settingsUsername">Username</label>
+                            <input type="text" id="settingsUsername" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="settingsRegNumber">Registration Number</label>
+                            <input type="text" id="settingsRegNumber" name="reg_number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="settingsEmail">Email</label>
+                            <input type="email" id="settingsEmail" name="email" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
+                </div>
+                
+                <!-- Password Settings -->
+                <div id="passwordSettingsTab" class="settings-tab-content">
+                    <form id="passwordForm" class="settings-form">
+                        <h3>Change Password</h3>
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="password" id="currentPassword" name="current_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword" name="new_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm New Password</label>
+                            <input type="password" id="confirmPassword" name="confirm_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hotel Settings Modal -->
+    <div id="hotelSettingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Business Settings</h2>
+                <span class="close" onclick="closeModal('hotelSettingsModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="settings-tabs">
+                    <button class="tab-btn active" onclick="switchHotelSettingsTab('business')">Business Info</button>
+                    <button class="tab-btn" onclick="switchHotelSettingsTab('password')">Change Password</button>
+                </div>
+                
+                <!-- Business Settings -->
+                <div id="businessSettingsTab" class="settings-tab-content active">
+                    <form id="businessForm" class="settings-form">
+                        <h3>Business Information</h3>
+                        <div class="form-group">
+                            <label for="businessUsername">Username</label>
+                            <input type="text" id="businessUsername" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="businessName">Business Name</label>
+                            <input type="text" id="businessName" name="hotel_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="businessEmail">Business Email</label>
+                            <input type="email" id="businessEmail" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="businessAddress">Address</label>
+                            <textarea id="businessAddress" name="hotel_address" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="businessContact">Contact Number</label>
+                            <input type="tel" id="businessContact" name="contact_number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="businessLicense">License Number</label>
+                            <input type="text" id="businessLicense" name="license_number" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Business Info</button>
+                    </form>
+                </div>
+                
+                <!-- Hotel Password Settings -->
+                <div id="hotelPasswordSettingsTab" class="settings-tab-content">
+                    <form id="hotelPasswordForm" class="settings-form">
+                        <h3>Change Password</h3>
+                        <div class="form-group">
+                            <label for="hotelCurrentPassword">Current Password</label>
+                            <input type="password" id="hotelCurrentPassword" name="current_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hotelNewPassword">New Password</label>
+                            <input type="password" id="hotelNewPassword" name="new_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hotelConfirmPassword">Confirm New Password</label>
+                            <input type="password" id="hotelConfirmPassword" name="confirm_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

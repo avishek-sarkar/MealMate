@@ -229,15 +229,480 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // Post interactions
 function likePost(postId) {
     // Add like functionality
-    console.log('Liked post:', postId);
 }
 
 function commentPost(postId) {
     // Add comment functionality
-    console.log('Comment on post:', postId);
 }
 
 function sharePost(postId) {
     // Add share functionality
-    console.log('Share post:', postId);
 }
+
+// Dashboard functionality
+function showDashboard() {
+    document.getElementById('dashboardModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    // Check user type and show appropriate dashboard
+    fetch('/my-posts')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Student dashboard
+                document.getElementById('studentDashboard').style.display = 'block';
+                document.getElementById('hotelDashboard').style.display = 'none';
+                document.getElementById('dashboardTitle').textContent = 'My Dashboard';
+                displayUserReviews(data.reviews);
+                displayUserFoods(data.food_posts);
+            }
+        })
+        .catch(error => {
+            // Try hotel dashboard
+            fetch('/my-menu')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Hotel dashboard
+                        document.getElementById('studentDashboard').style.display = 'none';
+                        document.getElementById('hotelDashboard').style.display = 'block';
+                        document.getElementById('dashboardTitle').textContent = 'Hotel Dashboard';
+                        displayHotelMenu(data.menu_items);
+                    }
+                })
+                .catch(error => console.error('Error loading dashboard:', error));
+        });
+}
+
+function showPostReviewModal() {
+    document.getElementById('postReviewModal').style.display = 'block';
+    loadRestaurants();
+}
+
+function showPostFoodModal() {
+    document.getElementById('postFoodModal').style.display = 'block';
+}
+
+function showAddMenuModal() {
+    document.getElementById('addMenuModal').style.display = 'block';
+}
+
+function showSettingsModal() {
+    document.getElementById('settingsModal').style.display = 'block';
+    loadUserProfile();
+}
+
+function showHotelSettingsModal() {
+    document.getElementById('hotelSettingsModal').style.display = 'block';
+    loadBusinessProfile();
+}
+
+// Load user profile for settings
+function loadUserProfile() {
+    fetch('/get-profile')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.type === 'student') {
+                document.getElementById('settingsUsername').value = data.user.username || '';
+                document.getElementById('settingsRegNumber').value = data.user.reg_number || '';
+                document.getElementById('settingsEmail').value = data.user.email || '';
+            }
+        })
+        .catch(error => console.error('Error loading profile:', error));
+}
+
+// Load business profile for settings
+function loadBusinessProfile() {
+    fetch('/get-profile')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.type === 'hotel') {
+                document.getElementById('businessUsername').value = data.user.username || '';
+                document.getElementById('businessName').value = data.user.hotel_name || '';
+                document.getElementById('businessEmail').value = data.user.email || '';
+                document.getElementById('businessAddress').value = data.user.hotel_address || '';
+                document.getElementById('businessContact').value = data.user.contact_number || '';
+                document.getElementById('businessLicense').value = data.user.license_number || '';
+            }
+        })
+        .catch(error => console.error('Error loading business profile:', error));
+}
+
+// Dashboard tab switching
+function switchDashboardTab(tab) {
+    // Remove active class from all tabs
+    document.querySelectorAll('#studentDashboard .dashboard-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#studentDashboard .dashboard-tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab
+    event.target.classList.add('active');
+    document.getElementById(tab + 'Tab').classList.add('active');
+}
+
+// Hotel dashboard tab switching
+function switchHotelTab(tab) {
+    // Remove active class from all tabs
+    document.querySelectorAll('#hotelDashboard .dashboard-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#hotelDashboard .dashboard-tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab
+    event.target.classList.add('active');
+    document.getElementById(tab + 'Tab').classList.add('active');
+}
+
+// Settings tab switching
+function switchSettingsTab(tab) {
+    // Remove active class from all tabs
+    document.querySelectorAll('#settingsModal .settings-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#settingsModal .settings-tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab
+    event.target.classList.add('active');
+    document.getElementById(tab + 'SettingsTab').classList.add('active');
+}
+
+// Hotel settings tab switching
+function switchHotelSettingsTab(tab) {
+    // Remove active class from all tabs
+    document.querySelectorAll('#hotelSettingsModal .settings-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#hotelSettingsModal .settings-tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab
+    event.target.classList.add('active');
+    document.getElementById(tab + 'SettingsTab').classList.add('active');
+}
+
+// Load dashboard content
+function loadDashboardContent() {
+    fetch('/my-posts')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayUserReviews(data.reviews);
+                displayUserFoods(data.food_posts);
+            }
+        })
+        .catch(error => console.error('Error loading dashboard:', error));
+}
+
+// Display user reviews
+function displayUserReviews(reviews) {
+    const container = document.getElementById('userReviews');
+    if (reviews.length === 0) {
+        container.innerHTML = '<p class="no-content">No reviews yet. Post your first review!</p>';
+        return;
+    }
+    
+    container.innerHTML = reviews.map(review => `
+        <div class="dashboard-post">
+            <div class="post-header">
+                <h4>${review.restaurant} - ${review.menu_item}</h4>
+                <span class="rating">${'⭐'.repeat(review.rating)}</span>
+            </div>
+            <p>${review.comment}</p>
+            <small class="post-time">${review.timeAgo}</small>
+        </div>
+    `).join('');
+}
+
+// Display user food posts
+function displayUserFoods(foods) {
+    const container = document.getElementById('userFoods');
+    if (foods.length === 0) {
+        container.innerHTML = '<p class="no-content">No food posts yet. Share your homemade delicacies!</p>';
+        return;
+    }
+    
+    container.innerHTML = foods.map(food => `
+        <div class="dashboard-post">
+            <div class="post-header">
+                <h4>${food.title}</h4>
+                <span class="price">₹${food.price}</span>
+                <span class="status ${food.is_available ? 'available' : 'unavailable'}">
+                    ${food.is_available ? 'Available' : 'Sold Out'}
+                </span>
+            </div>
+            <p>${food.description}</p>
+            <div class="post-details">
+                <span>📍 ${food.location}</span>
+                <span>📞 ${food.contact_info}</span>
+            </div>
+            <small class="post-time">${food.timeAgo}</small>
+        </div>
+    `).join('');
+}
+
+// Display hotel menu items
+function displayHotelMenu(menuItems) {
+    const container = document.getElementById('hotelMenu');
+    if (menuItems.length === 0) {
+        container.innerHTML = '<p class="no-content">No menu items yet. Add your first dish!</p>';
+        return;
+    }
+    
+    container.innerHTML = menuItems.map(item => `
+        <div class="dashboard-post">
+            <div class="post-header">
+                <h4>${item.item_name}</h4>
+                <span class="price">₹${item.price}</span>
+                <span class="status ${item.is_available ? 'available' : 'unavailable'}">
+                    ${item.is_available ? 'Available' : 'Unavailable'}
+                </span>
+            </div>
+            <p>${item.description}</p>
+            <div class="post-details">
+                <span>🍽️ ${item.category}</span>
+            </div>
+            <small class="post-time">Added ${item.created_at ? new Date(item.created_at).toLocaleDateString() : 'recently'}</small>
+        </div>
+    `).join('');
+}
+
+// Load restaurants for review form
+function loadRestaurants() {
+    fetch('/api/hotels')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('restaurantSelect');
+            select.innerHTML = '<option value="">Select a restaurant</option>';
+            data.forEach(hotel => {
+                select.innerHTML += `<option value="${hotel.id}">${hotel.name}</option>`;
+            });
+        })
+        .catch(error => console.error('Error loading restaurants:', error));
+}
+
+// Load menu items based on selected restaurant
+function loadMenuItems() {
+    const restaurantId = document.getElementById('restaurantSelect').value;
+    const menuSelect = document.getElementById('menuItemSelect');
+    
+    if (!restaurantId) {
+        menuSelect.innerHTML = '<option value="">Select restaurant first</option>';
+        return;
+    }
+    
+    // This would need to be implemented as a new API endpoint
+    fetch(`/api/menu-items/${restaurantId}`)
+        .then(response => response.json())
+        .then(data => {
+            menuSelect.innerHTML = '<option value="">Select a menu item</option>';
+            data.forEach(item => {
+                menuSelect.innerHTML += `<option value="${item.id}">${item.item_name} - ₹${item.price}</option>`;
+            });
+        })
+        .catch(error => {
+            console.error('Error loading menu items:', error);
+            menuSelect.innerHTML = '<option value="">Error loading items</option>';
+        });
+}
+
+// Form submission handlers for new features
+document.addEventListener('DOMContentLoaded', function() {
+    // Review form submission
+    const reviewForm = document.getElementById('reviewForm');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/post-review', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Review posted successfully!');
+                    closeModal('postReviewModal');
+                    this.reset();
+                    // Refresh the page to show new review
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to post review');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while posting review');
+            });
+        });
+    }
+
+    // Food form submission
+    const foodForm = document.getElementById('foodForm');
+    if (foodForm) {
+        foodForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/post-food', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Food post created successfully!');
+                    closeModal('postFoodModal');
+                    this.reset();
+                    // Refresh the page to show new post
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to post food');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while posting food');
+            });
+        });
+    }
+
+    // Menu form submission
+    const menuForm = document.getElementById('menuForm');
+    if (menuForm) {
+        menuForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/add-menu-item', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Menu item added successfully!');
+                    closeModal('addMenuModal');
+                    this.reset();
+                    // Refresh dashboard content
+                    loadDashboardContent();
+                } else {
+                    alert(data.message || 'Failed to add menu item');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while adding menu item');
+            });
+        });
+    }
+    
+    // Profile form submission
+    const profileForm = document.getElementById('profileForm');
+    if (profileForm) {
+        profileForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/update-profile', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Profile updated successfully!');
+                    closeModal('settingsModal');
+                } else {
+                    alert(data.message || 'Failed to update profile');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating profile');
+            });
+        });
+    }
+
+    // Password form submission
+    const passwordForm = document.getElementById('passwordForm');
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/change-password', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Password changed successfully!');
+                    this.reset();
+                    closeModal('settingsModal');
+                } else {
+                    alert(data.message || 'Failed to change password');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while changing password');
+            });
+        });
+    }
+
+    // Business form submission
+    const businessForm = document.getElementById('businessForm');
+    if (businessForm) {
+        businessForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/update-business', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Business information updated successfully!');
+                    closeModal('hotelSettingsModal');
+                } else {
+                    alert(data.message || 'Failed to update business information');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating business information');
+            });
+        });
+    }
+
+    // Hotel password form submission
+    const hotelPasswordForm = document.getElementById('hotelPasswordForm');
+    if (hotelPasswordForm) {
+        hotelPasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/change-hotel-password', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Password changed successfully!');
+                    this.reset();
+                    closeModal('hotelSettingsModal');
+                } else {
+                    alert(data.message || 'Failed to change password');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while changing password');
+            });
+        });
+    }
+});
