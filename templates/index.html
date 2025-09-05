@@ -24,8 +24,8 @@
             <div class="nav-auth">
                 {% if current_user %}
                     <div class="user-menu">
-                        <img src="{{ current_user.avatar }}" alt="{{ current_user.name }}" class="user-avatar-small">
-                        <span>Welcome, {{ current_user.name }}!</span>
+                        <img src="https://via.placeholder.com/40x40" alt="{{ current_user.username }}" class="user-avatar-small">
+                        <span>Welcome, {{ current_user.username }}!</span>
                         <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
                     </div>
                 {% else %}
@@ -51,8 +51,8 @@
                     <span class="stat-label">Active Students</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-number">24hrs</span>
-                    <span class="stat-label">Fresh Reviews</span>
+                    <span class="stat-number">500+</span>
+                    <span class="stat-label">Food Items</span>
                 </div>
             </div>
         </div>
@@ -61,182 +61,80 @@
     <!-- Main Content -->
     <main class="main-content">
         <!-- Newsfeed Section -->
-        <section id="newsfeed" class="section">
+        <section id="newsfeed" class="section active">
             <div class="container">
-                <div class="section-header">
-                    <h2><i class="fas fa-newspaper"></i> Today's Food Feed</h2>
-                    <p>Real-time reviews and posts from your campus community</p>
-                </div>
-
-                <!-- Filter Tabs -->
-                <div class="filter-tabs">
-                    <button class="filter-tab active" data-filter="all">All Posts</button>
-                    <button class="filter-tab" data-filter="reviews">Menu Reviews</button>
-                    <button class="filter-tab" data-filter="homemade">Homemade Food</button>
-                </div>
-
-                <!-- Posts Container -->
-                <div class="posts-container">
+                <h2 class="section-title">Latest Updates</h2>
+                <div class="newsfeed">
                     {% for post in posts %}
-                        {% if post.type == 'review' %}
-                            <div class="post-card review-post" data-type="reviews">
-                                <div class="post-header">
-                                    <div class="user-info">
-                                        <img src="{{ post.user.avatar }}" alt="{{ post.user.name }}" class="user-avatar">
-                                        <div class="user-details">
-                                            <h4>{{ post.user.name }}</h4>
-                                            <span class="post-time">{{ post.timeAgo }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="post-rating">
-                                        <span class="rating">{{ post.rating }}</span>
-                                        <div class="stars">
-                                            {% set full_stars = post.rating|int %}
-                                            {% set half_star = (post.rating - full_stars) >= 0.5 %}
-                                            {% for i in range(full_stars) %}
-                                                <i class="fas fa-star"></i>
-                                            {% endfor %}
-                                            {% if half_star %}
-                                                <i class="fas fa-star-half-alt"></i>
-                                            {% endif %}
-                                            {% for i in range(5 - full_stars - (1 if half_star else 0)) %}
-                                                <i class="far fa-star"></i>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="post-content">
-                                    <div class="restaurant-tag">
-                                        <i class="fas fa-store"></i>
-                                        <span>{{ post.restaurant }} - {{ post.menuItem }}</span>
+                    <div class="post-card">
+                        <div class="post-header">
+                            <img src="{{ post.user.avatar }}" alt="{{ post.user.name }}" class="user-avatar">
+                            <div class="post-info">
+                                <h3>{{ post.user.name }}</h3>
+                                <span class="post-time">{{ post.timeAgo }}</span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            {% if post.type == 'review' %}
+                                <div class="review-content">
+                                    <h4>{{ post.restaurant }} - {{ post.menuItem }}</h4>
+                                    <div class="rating">
+                                        {% for i in range(post.rating) %}⭐{% endfor %}
                                         <span class="price">₹{{ post.price }}</span>
                                     </div>
                                     <p>{{ post.comment }}</p>
-                                    {% if post.image %}
-                                        <div class="post-image">
-                                            <img src="{{ post.image }}" alt="Food Image">
-                                        </div>
-                                    {% endif %}
                                 </div>
-                                <div class="post-actions">
-                                    <button class="action-btn" onclick="likePost('{{ post.id }}', this)">
-                                        <i class="fas fa-thumbs-up"></i> <span>{{ post.likes }}</span>
-                                    </button>
-                                    <button class="action-btn">
-                                        <i class="fas fa-comment"></i> {{ post.comments }}
-                                    </button>
-                                    <button class="action-btn">
-                                        <i class="fas fa-share"></i> Share
-                                    </button>
-                                    <div class="time-remaining">
-                                        <i class="fas fa-clock"></i>
-                                        <span>Expires in {{ post.expiresIn }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        {% elif post.type == 'homemade' %}
-                            <div class="post-card homemade-post" data-type="homemade">
-                                <div class="post-header">
-                                    <div class="user-info">
-                                        <img src="{{ post.user.avatar }}" alt="{{ post.user.name }}" class="user-avatar">
-                                        <div class="user-details">
-                                            <h4>{{ post.user.name }}</h4>
-                                            <span class="post-time">{{ post.timeAgo }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="homemade-badge">
-                                        <i class="fas fa-home"></i>
-                                        <span>Homemade</span>
-                                    </div>
-                                </div>
-                                <div class="post-content">
-                                    <h3>{{ post.title }}</h3>
+                            {% elif post.type == 'homemade' %}
+                                <div class="homemade-content">
+                                    <h4>{{ post.title }}</h4>
                                     <p>{{ post.description }}</p>
-                                    {% if post.image %}
-                                        <div class="post-image">
-                                            <img src="{{ post.image }}" alt="{{ post.title }}">
-                                        </div>
-                                    {% endif %}
                                     <div class="food-details">
-                                        <div class="detail-item">
-                                            <i class="fas fa-rupee-sign"></i>
-                                            <span>₹{{ post.price }} per plate</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <i class="fas fa-users"></i>
-                                            <span>Serves {{ post.servingSize }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            <span>{{ post.location }}</span>
-                                        </div>
+                                        <span class="price">₹{{ post.price }}</span>
+                                        <span class="location">📍{{ post.location }}</span>
+                                        {% if post.isVegetarian %}<span class="veg-tag">🌱 Vegetarian</span>{% endif %}
                                     </div>
                                 </div>
-                                <div class="post-actions">
-                                    <button class="action-btn" onclick="likePost('{{ post.id }}', this)">
-                                        <i class="fas fa-heart"></i> <span>{{ post.likes }}</span>
-                                    </button>
-                                    <button class="action-btn">
-                                        <i class="fas fa-comment"></i> {{ post.comments }}
-                                    </button>
-                                    <button class="action-btn btn-primary" onclick="contactSeller('{{ post.user.name }}')">
-                                        <i class="fas fa-phone"></i> Contact
-                                    </button>
-                                    <div class="time-remaining">
-                                        <i class="fas fa-clock"></i>
-                                        <span>Expires in {{ post.expiresIn }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
+                            {% else %}
+                                <p>{{ post.content or post.comment or post.description }}</p>
+                            {% endif %}
+                            {% if post.image %}
+                            <img src="{{ post.image }}" alt="Post image" class="post-image">
+                            {% endif %}
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn"><i class="fas fa-heart"></i> Like</button>
+                            <button class="action-btn"><i class="fas fa-comment"></i> Comment</button>
+                            <button class="action-btn"><i class="fas fa-share"></i> Share</button>
+                        </div>
+                    </div>
                     {% endfor %}
                 </div>
             </div>
         </section>
 
         <!-- Hotels Section -->
-        <section id="hotels" class="section bg-light">
+        <section id="hotels" class="section">
             <div class="container">
-                <div class="section-header">
-                    <h2><i class="fas fa-store"></i> Partner Hotels & Restaurants</h2>
-                    <p>Explore today's menus from your favorite campus eateries</p>
-                </div>
-
+                <h2 class="section-title">Partner Hotels & Restaurants</h2>
                 <div class="hotels-grid">
                     {% for hotel in hotels %}
-                        <div class="hotel-card">
-                            <div class="hotel-header">
-                                <img src="{{ hotel.image }}" alt="{{ hotel.name }}" class="hotel-image">
-                                <div class="hotel-overlay">
-                                    <div class="hotel-rating">
-                                        <span>{{ hotel.rating }}</span>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                </div>
+                    <div class="hotel-card">
+                        <img src="{{ hotel.image }}" alt="{{ hotel.name }}" class="hotel-image">
+                        <div class="hotel-info">
+                            <h3>{{ hotel.name }}</h3>
+                            <p class="hotel-address">{{ hotel.address }}</p>
+                            <div class="hotel-rating">
+                                <span class="rating-stars">★★★★☆</span>
+                                <span class="rating-score">4.2</span>
                             </div>
-                            <div class="hotel-content">
-                                <h3>{{ hotel.name }}</h3>
-                                <p>{{ hotel.description }}</p>
-                                <div class="hotel-info">
-                                    <span><i class="fas fa-map-marker-alt"></i> {{ hotel.location }}</span>
-                                    <span><i class="fas fa-clock"></i> {{ hotel.openTime }} - {{ hotel.closeTime }}</span>
-                                </div>
-                                <div class="menu-preview">
-                                    <h4>Today's Special Menu</h4>
-                                    <div class="menu-items">
-                                        {% for item in hotel.menu %}
-                                            <div class="menu-item">
-                                                <span>{{ item.name }}</span>
-                                                <span class="price">₹{{ item.price }}</span>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary full-width" onclick="viewHotelMenu('{{ hotel.name }}')">
-                                    View Full Menu & Reviews
-                                </button>
+                            <p class="hotel-cuisine">{{ hotel.cuisine_type }}</p>
+                            <div class="hotel-price">
+                                <span class="price-range">₹{{ hotel.price_range }}</span>
+                                <span class="delivery-time">{{ hotel.delivery_time }} mins</span>
                             </div>
                         </div>
+                        <button class="btn btn-primary btn-full">View Menu</button>
+                    </div>
                     {% endfor %}
                 </div>
             </div>
@@ -245,64 +143,68 @@
         <!-- Homemade Food Section -->
         <section id="homemade" class="section">
             <div class="container">
-                <div class="section-header">
-                    <h2><i class="fas fa-home"></i> Homemade Food Marketplace</h2>
-                    <p>Discover delicious homemade food from fellow students</p>
-                </div>
-
-                <div class="homemade-controls">
-                    <button class="btn btn-primary" onclick="postFood()">
-                        <i class="fas fa-plus"></i>
-                        Post Your Food
-                    </button>
-                    <div class="sort-options">
-                        <select class="form-select" onchange="sortHomemadeFood(this.value)">
-                            <option value="latest">Sort by: Latest</option>
-                            <option value="price-low">Sort by: Price (Low to High)</option>
-                            <option value="price-high">Sort by: Price (High to Low)</option>
-                            <option value="location">Sort by: Location</option>
-                        </select>
+                <h2 class="section-title">Homemade Food</h2>
+                <div class="homemade-grid">
+                    <div class="food-card">
+                        <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300&h=200&fit=crop" alt="Homemade Pizza" class="food-image">
+                        <div class="food-info">
+                            <h3>Homemade Pizza</h3>
+                            <p class="food-maker">by Sarah Wilson</p>
+                            <p class="food-price">₹150</p>
+                            <div class="food-rating">★★★★★</div>
+                        </div>
+                    </div>
+                    <div class="food-card">
+                        <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=300&h=200&fit=crop" alt="Traditional Curry" class="food-image">
+                        <div class="food-info">
+                            <h3>Traditional Curry</h3>
+                            <p class="food-maker">by Priya Sharma</p>
+                            <p class="food-price">₹120</p>
+                            <div class="food-rating">★★★★☆</div>
+                        </div>
+                    </div>
+                    <div class="food-card">
+                        <img src="https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=300&h=200&fit=crop" alt="Fresh Sandwiches" class="food-image">
+                        <div class="food-info">
+                            <h3>Fresh Sandwiches</h3>
+                            <p class="food-maker">by Mike Chen</p>
+                            <p class="food-price">₹80</p>
+                            <div class="food-rating">★★★★☆</div>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <div class="homemade-grid">
-                    {% for food in homemade_food %}
-                        <div class="homemade-card">
-                            <div class="card-image">
-                                <img src="{{ food.image }}" alt="{{ food.title }}">
-                                <div class="time-badge">
-                                    <i class="fas fa-clock"></i>
-                                    <span>{{ food.expiresIn }}</span>
-                                </div>
-                            </div>
-                            <div class="card-content">
-                                <h3>{{ food.title }}</h3>
-                                <div class="seller-info">
-                                    <img src="{{ food.seller.avatar }}" alt="{{ food.seller.name }}" class="seller-avatar">
-                                    <span>by {{ food.seller.name }}</span>
-                                </div>
-                                <p>{{ food.description }}</p>
-                                <div class="food-specs">
-                                    {% if food.isVegetarian %}
-                                        <span class="spec"><i class="fas fa-leaf"></i> Vegetarian</span>
-                                    {% else %}
-                                        <span class="spec"><i class="fas fa-drumstick-bite"></i> Non-Veg</span>
-                                    {% endif %}
-                                    <span class="spec"><i class="fas fa-users"></i> Serves {{ food.servingSize }}</span>
-                                </div>
-                                <div class="card-footer">
-                                    <div class="price">₹{{ food.price }}</div>
-                                    <div class="location">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        <span>{{ food.location }}</span>
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary full-width" onclick="contactSeller('{{ food.seller.name }}')">
-                                    Contact Seller
-                                </button>
-                            </div>
+        <!-- About Section -->
+        <section id="about" class="section">
+            <div class="container">
+                <h2 class="section-title">About MealMate</h2>
+                <div class="about-content">
+                    <p>MealMate is your ultimate campus food companion, connecting students with the best local dining options and homemade food from fellow students. Our platform makes it easy to discover, order, and enjoy amazing food right on your campus.</p>
+                    
+                    <div class="features-grid">
+                        <div class="feature">
+                            <i class="fas fa-search"></i>
+                            <h3>Discover</h3>
+                            <p>Find the best restaurants and homemade food options near you</p>
                         </div>
-                    {% endfor %}
+                        <div class="feature">
+                            <i class="fas fa-shopping-cart"></i>
+                            <h3>Order</h3>
+                            <p>Easy online ordering with multiple payment options</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-truck"></i>
+                            <h3>Deliver</h3>
+                            <p>Fast and reliable delivery right to your doorstep</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-users"></i>
+                            <h3>Connect</h3>
+                            <p>Join a community of food lovers and share your experiences</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -313,22 +215,43 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Login to MealMate</h2>
-                <span class="close" onclick="hideModal('loginModal')">&times;</span>
+                <span class="close" onclick="closeModal('loginModal')">&times;</span>
             </div>
             <div class="modal-body">
-                <form action="{{ url_for('login') }}" method="POST" class="login-form">
+                <div class="login-tabs">
+                    <button class="tab-btn active" onclick="switchLoginTab('student')">Student</button>
+                    <button class="tab-btn" onclick="switchLoginTab('hotel')">Hotel Owner</button>
+                </div>
+                
+                <!-- Student Login Form -->
+                <form id="studentLoginForm" class="login-form active">
                     <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
+                        <label for="studentUsername">Username or Email</label>
+                        <input type="text" id="studentUsername" name="username" placeholder="Enter your username or email" required>
                     </div>
                     <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required>
+                        <label for="studentPassword">Password</label>
+                        <input type="password" id="studentPassword" name="password" placeholder="Enter your password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary full-width">Login</button>
+                    <button type="submit" class="btn btn-primary btn-full">Login as Student</button>
                     <div class="form-links">
-                        <a href="#" onclick="showRegisterModal()">Don't have an account? Sign Up</a>
-                        <a href="#">Forgot Password?</a>
+                        <a href="#" onclick="showRegisterModal()">Don't have an account? Sign up</a>
+                    </div>
+                </form>
+
+                <!-- Hotel Owner Login Form -->
+                <form id="hotelLoginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="hotelUsername">Username or Email</label>
+                        <input type="text" id="hotelUsername" name="username" placeholder="Enter your business username or email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="hotelPassword">Password</label>
+                        <input type="password" id="hotelPassword" name="password" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Login as Hotel Owner</button>
+                    <div class="form-links">
+                        <a href="#" onclick="showRegisterModal()">Need a business account? Register</a>
                     </div>
                 </form>
             </div>
@@ -339,24 +262,70 @@
     <div id="registerModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Sign Up for MealMate</h2>
-                <span class="close" onclick="hideModal('registerModal')">&times;</span>
+                <h2>Join MealMate</h2>
+                <span class="close" onclick="closeModal('registerModal')">&times;</span>
             </div>
             <div class="modal-body">
-                <form action="{{ url_for('register') }}" method="POST" class="login-form">
+                <div class="login-tabs">
+                    <button class="tab-btn active" onclick="switchRegisterTab('student')">Student</button>
+                    <button class="tab-btn" onclick="switchRegisterTab('hotel')">Hotel Owner</button>
+                </div>
+                
+                <!-- Student Registration Form -->
+                <form id="studentRegisterForm" class="login-form active">
                     <div class="form-group">
-                        <label for="reg-name">Full Name</label>
-                        <input type="text" id="reg-name" name="name" required>
+                        <label for="regStudentUsername">Username</label>
+                        <input type="text" id="regStudentUsername" name="username" placeholder="Choose a username" required>
                     </div>
                     <div class="form-group">
-                        <label for="reg-email">Email</label>
-                        <input type="email" id="reg-email" name="email" required>
+                        <label for="regStudentRegNumber">Registration Number</label>
+                        <input type="text" id="regStudentRegNumber" name="reg_number" placeholder="Your student registration number" required>
                     </div>
                     <div class="form-group">
-                        <label for="reg-password">Password</label>
-                        <input type="password" id="reg-password" name="password" required>
+                        <label for="regStudentEmail">Email</label>
+                        <input type="email" id="regStudentEmail" name="email" placeholder="Your university email" required>
                     </div>
-                    <button type="submit" class="btn btn-primary full-width">Sign Up</button>
+                    <div class="form-group">
+                        <label for="regStudentPassword">Password</label>
+                        <input type="password" id="regStudentPassword" name="password" placeholder="Create a password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Register as Student</button>
+                    <div class="form-links">
+                        <a href="#" onclick="showLoginModal()">Already have an account? Login</a>
+                    </div>
+                </form>
+
+                <!-- Hotel Owner Registration Form -->
+                <form id="hotelRegisterForm" class="login-form">
+                    <div class="form-group">
+                        <label for="regHotelUsername">Business Username</label>
+                        <input type="text" id="regHotelUsername" name="username" placeholder="Choose a business username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regHotelName">Hotel/Restaurant Name</label>
+                        <input type="text" id="regHotelName" name="hotel_name" placeholder="Your business name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regHotelEmail">Business Email</label>
+                        <input type="email" id="regHotelEmail" name="email" placeholder="Your business email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regHotelAddress">Address</label>
+                        <input type="text" id="regHotelAddress" name="hotel_address" placeholder="Your business address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regHotelContact">Contact Number</label>
+                        <input type="tel" id="regHotelContact" name="contact_number" placeholder="Your contact number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regHotelLicense">License Number</label>
+                        <input type="text" id="regHotelLicense" name="license_number" placeholder="Your FSSAI license number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regHotelPassword">Password</label>
+                        <input type="password" id="regHotelPassword" name="password" placeholder="Create a password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Register Business</button>
                     <div class="form-links">
                         <a href="#" onclick="showLoginModal()">Already have an account? Login</a>
                     </div>
@@ -371,35 +340,25 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>MealMate</h3>
-                    <p>Connecting campus food lovers since 2024</p>
+                    <p>Connecting campus food lovers since 2023</p>
                 </div>
                 <div class="footer-section">
-                    <h4>For Students</h4>
+                    <h4>Quick Links</h4>
                     <ul>
-                        <li><a href="#">Browse Menus</a></li>
-                        <li><a href="#">Post Reviews</a></li>
-                        <li><a href="#">Sell Homemade Food</a></li>
+                        <li><a href="#newsfeed">Newsfeed</a></li>
+                        <li><a href="#hotels">Hotels</a></li>
+                        <li><a href="#homemade">Homemade</a></li>
+                        <li><a href="#about">About</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>For Hotels</h4>
-                    <ul>
-                        <li><a href="#">Partner with Us</a></li>
-                        <li><a href="#">Update Menu</a></li>
-                        <li><a href="#">View Analytics</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Support</h4>
-                    <ul>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="#">Contact Us</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                    </ul>
+                    <h4>Contact</h4>
+                    <p>Email: info@mealmate.com</p>
+                    <p>Phone: +91 12345 67890</p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 MealMate. Made with ❤️ for campus food lovers.</p>
+                <p>&copy; 2023 MealMate. All rights reserved.</p>
             </div>
         </div>
     </footer>
