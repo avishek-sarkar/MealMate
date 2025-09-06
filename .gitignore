@@ -108,3 +108,20 @@ test_*.py
 debug_*.py
 *_test.py
 *_debug.py
+
+# Local development and test files
+test_api.py
+test_complete.py
+test_notifications.py
+
+# Cleanup and utility scripts
+cleanup_*.py
+clear_*.py
+delete_*.py
+*_cleanup.py
+*_clear.py
+*_delete.py
+
+# Documentation that might be temporary
+CLEANUP_SUMMARY.md
+TEMP_*.md

@@ -6,12 +6,13 @@ Database-powered version with SQLAlchemy
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_migrate import Migrate
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import os
 from datetime import datetime, timedelta
 import logging
 
 # Import database models
-from models import db, User, HotelOwner, MenuItem, Review, StudentFoodPost, Admin, cleanup_expired_content
+from models import db, User, HotelOwner, MenuItem, Review, StudentFoodPost, Admin, Notification, PostInteraction, cleanup_expired_content
 
 def create_app():
     """Application factory pattern"""
@@ -27,6 +28,10 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     migrate = Migrate(app, db)
+    
+    # Initialize SocketIO for real-time notifications
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+    app.socketio = socketio  # Store reference for use in routes
     
     # Create upload directory
     os.makedirs(os.path.join(app.root_path, app.config['UPLOAD_FOLDER']), exist_ok=True)
@@ -55,9 +60,11 @@ def create_app():
         return 'admin_id' in session
     
     def get_current_user():
-        """Get current logged in user"""
+        """Get current logged in user (student or hotel owner)"""
         if 'user_id' in session:
             return User.query.get(session['user_id'])
+        elif 'hotel_owner_id' in session:
+            return HotelOwner.query.get(session['hotel_owner_id'])
         return None
     
     def get_current_hotel_owner():
@@ -188,7 +195,7 @@ def create_app():
                              sample_food_price=sample_food_price,
                              sample_food_quantity=sample_food_quantity,
                              sample_menu_price=sample_menu_price,
-                             current_user=get_current_user() or get_current_hotel_owner())
+                             current_user=get_current_user())
 
     # ==================================================================================
     # AUTHENTICATION ROUTES
@@ -490,6 +497,21 @@ def create_app():
             db.session.add(review)
             db.session.commit()
             
+            # Broadcast new review to all users
+            review_data = {
+                'id': review.id,
+                'user': {'name': review.user.username},
+                'rating': review.rating,
+                'restaurant': menu_item.hotel_owner.hotel_name,
+                'menuItem': menu_item.item_name,
+                'price': menu_item.price,
+                'comment': review.comment,
+                'image': review.image_url or '',
+                'timeAgo': 'Just now',
+                'type': 'review'
+            }
+            broadcast_new_post(review_data, 'review')
+            
             return jsonify({
                 'success': True,
                 'message': 'Review posted successfully!',
@@ -552,6 +574,21 @@ def create_app():
             
             db.session.add(food_post)
             db.session.commit()
+            
+            # Broadcast new food post to all users
+            post_data = {
+                'id': food_post.id,
+                'user': {'name': food_post.user.username},
+                'title': food_post.title,
+                'description': food_post.description,
+                'price': food_post.price,
+                'image': food_post.image_url or 'https://via.placeholder.com/300x200',
+                'location': food_post.location,
+                'isVegetarian': food_post.food_type == 'veg',
+                'timeAgo': 'Just now',
+                'type': 'homemade'
+            }
+            broadcast_new_post(post_data, 'homemade')
             
             return jsonify({
                 'success': True,
@@ -1212,6 +1249,231 @@ def create_app():
         return jsonify(legacy_posts)
 
     # ==================================================================================
+    # POST INTERACTION & NOTIFICATION ROUTES
+    # ==================================================================================
+    
+    @app.route('/api/post/like', methods=['POST'])
+    def like_post():
+        """Like or unlike a post"""
+        try:
+            user = get_current_user()
+            if not user:
+                return jsonify({'success': False, 'message': 'Login required'}), 401
+            
+            data = request.get_json()
+            post_id = data.get('post_id')
+            post_type = data.get('post_type')  # 'review' or 'food_post'
+            
+            if not post_id or not post_type:
+                return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+            
+            # Check if user already liked this post
+            existing_like = PostInteraction.query.filter_by(
+                user_id=user.id,
+                post_id=post_id,
+                post_type=post_type,
+                interaction_type='like'
+            ).first()
+            
+            if existing_like:
+                # Unlike the post
+                db.session.delete(existing_like)
+                action = 'unliked'
+            else:
+                # Like the post
+                like = PostInteraction(
+                    user_id=user.id,
+                    post_id=post_id,
+                    post_type=post_type,
+                    interaction_type='like'
+                )
+                db.session.add(like)
+                action = 'liked'
+                
+                # Create notification for post owner (only for student users)
+                if post_type == 'review':
+                    post = Review.query.get(post_id)
+                    if post and post.user_id != user.id:
+                        # Check if the liker is a student user (has username attribute from User model)
+                        liker_name = getattr(user, 'username', getattr(user, 'hotel_name', 'Someone'))
+                        create_notification(
+                            user_id=post.user_id,
+                            notification_type='like',
+                            title='New Like!',
+                            message=f'{liker_name} liked your review',
+                            related_id=post_id,
+                            related_type='review'
+                        )
+                elif post_type == 'food_post':
+                    post = StudentFoodPost.query.get(post_id)
+                    if post and post.user_id != user.id:
+                        # Check if the liker is a student user
+                        liker_name = getattr(user, 'username', getattr(user, 'hotel_name', 'Someone'))
+                        create_notification(
+                            user_id=post.user_id,
+                            notification_type='like',
+                            title='New Like!',
+                            message=f'{liker_name} liked your food post',
+                            related_id=post_id,
+                            related_type='food_post'
+                        )
+            
+            db.session.commit()
+            
+            # Get updated counts
+            likes_count = PostInteraction.get_post_likes_count(post_id, post_type)
+            user_has_liked = PostInteraction.user_has_liked(user.id, post_id, post_type)
+            
+            return jsonify({
+                'success': True,
+                'action': action,
+                'likes_count': likes_count,
+                'user_has_liked': user_has_liked
+            })
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error handling like: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to process like'}), 500
+    
+    @app.route('/api/post/comment', methods=['POST'])
+    def comment_on_post():
+        """Add a comment to a post"""
+        try:
+            user = get_current_user()
+            if not user:
+                return jsonify({'success': False, 'message': 'Login required'}), 401
+            
+            data = request.get_json()
+            post_id = data.get('post_id')
+            post_type = data.get('post_type')
+            comment_text = data.get('comment_text', '').strip()
+            
+            if not post_id or not post_type or not comment_text:
+                return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+            
+            if len(comment_text) > 500:
+                return jsonify({'success': False, 'message': 'Comment too long (max 500 characters)'}), 400
+            
+            # Create comment
+            comment = PostInteraction(
+                user_id=user.id,
+                post_id=post_id,
+                post_type=post_type,
+                interaction_type='comment',
+                comment_text=comment_text
+            )
+            db.session.add(comment)
+            
+            # Create notification for post owner
+            if post_type == 'review':
+                post = Review.query.get(post_id)
+                if post and post.user_id != user.id:
+                    create_notification(
+                        user_id=post.user_id,
+                        notification_type='comment',
+                        title='New Comment!',
+                        message=f'{user.username} commented on your review',
+                        related_id=post_id,
+                        related_type='review'
+                    )
+            elif post_type == 'food_post':
+                post = StudentFoodPost.query.get(post_id)
+                if post and post.user_id != user.id:
+                    create_notification(
+                        user_id=post.user_id,
+                        notification_type='comment',
+                        title='New Comment!',
+                        message=f'{user.username} commented on your food post',
+                        related_id=post_id,
+                        related_type='food_post'
+                    )
+            
+            db.session.commit()
+            
+            # Get updated counts
+            comments_count = PostInteraction.get_post_comments_count(post_id, post_type)
+            
+            return jsonify({
+                'success': True,
+                'comment': comment.to_dict(),
+                'comments_count': comments_count
+            })
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error adding comment: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to add comment'}), 500
+    
+    @app.route('/api/notifications')
+    def get_notifications():
+        """Get user notifications"""
+        try:
+            user = get_current_user()
+            if not user:
+                return jsonify({'success': False, 'message': 'Login required'}), 401
+            
+            # Only return notifications for student users (User model)
+            # Hotel owners don't have notifications yet
+            if not hasattr(user, 'reg_number'):  # Hotel owners don't have reg_number
+                return jsonify({
+                    'success': True,
+                    'notifications': [],
+                    'unread_count': 0
+                })
+            
+            notifications = Notification.query.filter_by(user_id=user.id)\
+                                           .filter(Notification.expires_at > datetime.utcnow())\
+                                           .order_by(Notification.created_at.desc())\
+                                           .limit(50).all()
+            
+            unread_count = Notification.query.filter_by(user_id=user.id, is_read=False)\
+                                          .filter(Notification.expires_at > datetime.utcnow())\
+                                          .count()
+            
+            return jsonify({
+                'success': True,
+                'notifications': [notification.to_dict() for notification in notifications],
+                'unread_count': unread_count
+            })
+            
+        except Exception as e:
+            app.logger.error(f"Error getting notifications: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to get notifications'}), 500
+    
+    @app.route('/api/post/interactions/<int:post_id>/<post_type>')
+    def get_post_interactions(post_id, post_type):
+        """Get post interaction counts and user's interaction status"""
+        try:
+            user = get_current_user()
+            
+            likes_count = PostInteraction.get_post_likes_count(post_id, post_type)
+            comments_count = PostInteraction.get_post_comments_count(post_id, post_type)
+            
+            user_has_liked = False
+            if user:
+                user_has_liked = PostInteraction.user_has_liked(user.id, post_id, post_type)
+            
+            # Get recent comments
+            comments = PostInteraction.query.filter_by(
+                post_id=post_id,
+                post_type=post_type,
+                interaction_type='comment'
+            ).order_by(PostInteraction.created_at.desc()).limit(5).all()
+            
+            return jsonify({
+                'success': True,
+                'likes_count': likes_count,
+                'comments_count': comments_count,
+                'user_has_liked': user_has_liked,
+                'recent_comments': [comment.to_dict() for comment in comments]
+            })
+            
+        except Exception as e:
+            app.logger.error(f"Error getting post interactions: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to get interactions'}), 500
+
+    # ==================================================================================
     # ADMIN PANEL ROUTES
     # ==================================================================================
     
@@ -1475,6 +1737,93 @@ def create_app():
     def internal_error(error):
         db.session.rollback()
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+    # ==================================================================================
+    # REAL-TIME NOTIFICATION FUNCTIONS
+    # ==================================================================================
+    
+    def create_notification(user_id, notification_type, title, message, related_id=None, related_type=None):
+        """Create and emit a real-time notification"""
+        try:
+            notification = Notification(
+                user_id=user_id,
+                type=notification_type,
+                title=title,
+                message=message,
+                related_id=related_id,
+                related_type=related_type
+            )
+            db.session.add(notification)
+            db.session.commit()
+            
+            # Emit real-time notification
+            socketio.emit('new_notification', notification.to_dict(), room=f'user_{user_id}')
+            
+            return notification
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error creating notification: {str(e)}")
+            return None
+    
+    def broadcast_new_post(post_data, post_type):
+        """Broadcast new post to all connected users"""
+        try:
+            socketio.emit('new_post', {
+                'type': post_type,
+                'data': post_data,
+                'timestamp': datetime.utcnow().isoformat()
+            }, broadcast=True)
+        except Exception as e:
+            app.logger.error(f"Error broadcasting new post: {str(e)}")
+    
+    # ==================================================================================
+    # WEBSOCKET EVENTS
+    # ==================================================================================
+    
+    @socketio.on('connect')
+    def handle_connect():
+        """Handle user connection"""
+        try:
+            user = get_current_user()
+            if user:
+                join_room(f'user_{user.id}')
+                emit('connected', {'status': 'Connected successfully'})
+                app.logger.info(f"User {user.username} connected to notifications")
+        except Exception as e:
+            app.logger.error(f"Connection error: {str(e)}")
+    
+    @socketio.on('disconnect')
+    def handle_disconnect():
+        """Handle user disconnection"""
+        try:
+            user = get_current_user()
+            if user:
+                leave_room(f'user_{user.id}')
+                app.logger.info(f"User {user.username} disconnected from notifications")
+        except Exception as e:
+            app.logger.error(f"Disconnection error: {str(e)}")
+    
+    @socketio.on('mark_notification_read')
+    def handle_mark_notification_read(data):
+        """Mark notification as read"""
+        try:
+            user = get_current_user()
+            if not user:
+                return
+            
+            notification_id = data.get('notification_id')
+            notification = Notification.query.filter_by(id=notification_id, user_id=user.id).first()
+            
+            if notification:
+                notification.is_read = True
+                db.session.commit()
+                emit('notification_marked_read', {'notification_id': notification_id})
+        except Exception as e:
+            app.logger.error(f"Error marking notification as read: {str(e)}")
+    
+    # Store functions in app for use in routes
+    app.create_notification = create_notification
+    app.broadcast_new_post = broadcast_new_post
 
     return app
 

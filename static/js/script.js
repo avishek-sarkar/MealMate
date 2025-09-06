@@ -982,3 +982,522 @@ function createMenuCard(item) {
     
     return card;
 }
+
+// ============================================================================
+// REAL-TIME NOTIFICATIONS & POST INTERACTIONS
+// ============================================================================
+
+// Socket.IO connection
+let socket = null;
+let notificationsPanel = null;
+
+// Initialize real-time features
+document.addEventListener('DOMContentLoaded', function() {
+    initializeRealTimeFeatures();
+    initializePostInteractions();
+    loadPostInteractions();
+});
+
+function initializeRealTimeFeatures() {
+    // Check if user is logged in (you can set this from the server)
+    const isLoggedIn = document.querySelector('.user-menu') !== null;
+    
+    if (isLoggedIn && typeof io !== 'undefined') {
+        // Initialize Socket.IO connection
+        socket = io();
+        
+        socket.on('connect', function() {
+            console.log('Connected to real-time notifications');
+        });
+        
+        socket.on('new_notification', function(notification) {
+            showNotificationToast(notification);
+            updateNotificationCount();
+        });
+        
+        socket.on('new_post', function(data) {
+            showNewPostNotification(data);
+            addNewPostToFeed(data);
+        });
+        
+        socket.on('disconnect', function() {
+            console.log('Disconnected from notifications');
+        });
+        
+        // Load initial notification count
+        updateNotificationCount();
+    }
+    
+    notificationsPanel = document.getElementById('notificationsPanel');
+}
+
+function initializePostInteractions() {
+    // Like button handlers
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.like-btn')) {
+            e.preventDefault();
+            handleLikeClick(e.target.closest('.like-btn'));
+        }
+        
+        if (e.target.closest('.comment-btn')) {
+            e.preventDefault();
+            handleCommentClick(e.target.closest('.comment-btn'));
+        }
+    });
+    
+    // Comment form handler
+    const commentForm = document.getElementById('commentForm');
+    if (commentForm) {
+        commentForm.addEventListener('submit', handleCommentSubmit);
+    }
+    
+    // Character counter for comment textarea
+    const commentText = document.getElementById('commentText');
+    if (commentText) {
+        commentText.addEventListener('input', updateCharacterCount);
+    }
+}
+
+function loadPostInteractions() {
+    // Load interaction counts for all posts
+    const postCards = document.querySelectorAll('.post-card');
+    postCards.forEach(card => {
+        const likeBtn = card.querySelector('.like-btn');
+        const commentBtn = card.querySelector('.comment-btn');
+        
+        if (likeBtn && commentBtn) {
+            const postId = likeBtn.dataset.postId;
+            const postType = likeBtn.dataset.postType;
+            
+            fetch(`/api/post/interactions/${postId}/${postType}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateInteractionCounts(card, data);
+                    }
+                })
+                .catch(error => console.error('Error loading interactions:', error));
+        }
+    });
+}
+
+function handleLikeClick(button) {
+    const postId = button.dataset.postId;
+    const postType = button.dataset.postType;
+    
+    if (!postId || !postType) return;
+    
+    fetch('/api/post/like', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            post_id: parseInt(postId),
+            post_type: postType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateLikeButton(button, data);
+        } else {
+            if (data.message === 'Login required') {
+                showLoginModal();
+            } else {
+                showNotification(data.message, 'error');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error handling like:', error);
+        showNotification('Failed to process like', 'error');
+    });
+}
+
+function handleCommentClick(button) {
+    const postId = button.dataset.postId;
+    const postType = button.dataset.postType;
+    
+    // Check if user is logged in
+    const isLoggedIn = document.querySelector('.user-menu') !== null;
+    if (!isLoggedIn) {
+        showLoginModal();
+        return;
+    }
+    
+    // Show comment modal
+    document.getElementById('commentPostId').value = postId;
+    document.getElementById('commentPostType').value = postType;
+    document.getElementById('commentModal').style.display = 'block';
+    document.getElementById('commentText').focus();
+}
+
+function handleCommentSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {
+        post_id: parseInt(formData.get('post_id')),
+        post_type: formData.get('post_type'),
+        comment_text: formData.get('comment_text').trim()
+    };
+    
+    if (!data.comment_text) {
+        showNotification('Please enter a comment', 'error');
+        return;
+    }
+    
+    fetch('/api/post/comment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            closeCommentModal();
+            showNotification('Comment added successfully!', 'success');
+            updateCommentsCount(data.post_id, data.post_type, result.comments_count);
+        } else {
+            showNotification(result.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding comment:', error);
+        showNotification('Failed to add comment', 'error');
+    });
+}
+
+function updateLikeButton(button, data) {
+    const icon = button.querySelector('i');
+    const countSpan = button.querySelector('.likes-count');
+    
+    if (data.user_has_liked) {
+        icon.className = 'fas fa-heart';
+        button.classList.add('liked');
+    } else {
+        icon.className = 'far fa-heart';
+        button.classList.remove('liked');
+    }
+    
+    countSpan.textContent = data.likes_count;
+}
+
+function updateCommentsCount(postId, postType, count) {
+    const postCard = document.querySelector(`[data-post-id="${postId}"][data-post-type="${postType}"]`).closest('.post-card');
+    const commentBtn = postCard.querySelector('.comment-btn .comments-count');
+    if (commentBtn) {
+        commentBtn.textContent = count;
+    }
+}
+
+function updateInteractionCounts(card, data) {
+    const likeBtn = card.querySelector('.like-btn');
+    const commentBtn = card.querySelector('.comment-btn');
+    
+    if (likeBtn) {
+        const icon = likeBtn.querySelector('i');
+        const countSpan = likeBtn.querySelector('.likes-count');
+        
+        countSpan.textContent = data.likes_count;
+        
+        if (data.user_has_liked) {
+            icon.className = 'fas fa-heart';
+            likeBtn.classList.add('liked');
+        } else {
+            icon.className = 'far fa-heart';
+            likeBtn.classList.remove('liked');
+        }
+    }
+    
+    if (commentBtn) {
+        const countSpan = commentBtn.querySelector('.comments-count');
+        countSpan.textContent = data.comments_count;
+    }
+}
+
+function updateCharacterCount() {
+    const textarea = document.getElementById('commentText');
+    const counter = document.querySelector('.character-count');
+    if (textarea && counter) {
+        const current = textarea.value.length;
+        const max = 500;
+        counter.textContent = `${current}/${max}`;
+        
+        if (current > max) {
+            counter.style.color = '#dc3545';
+        } else if (current > max * 0.9) {
+            counter.style.color = '#ffc107';
+        } else {
+            counter.style.color = '#666';
+        }
+    }
+}
+
+function closeCommentModal() {
+    document.getElementById('commentModal').style.display = 'none';
+    document.getElementById('commentForm').reset();
+    updateCharacterCount();
+}
+
+// Notification functions
+function toggleNotifications() {
+    if (notificationsPanel.style.display === 'none' || !notificationsPanel.style.display) {
+        loadNotifications();
+        notificationsPanel.style.display = 'block';
+    } else {
+        notificationsPanel.style.display = 'none';
+    }
+}
+
+function loadNotifications() {
+    const content = document.getElementById('notificationsContent');
+    content.innerHTML = '<div class="loading-notifications"><i class="fas fa-spinner fa-spin"></i> Loading notifications...</div>';
+    
+    fetch('/api/notifications')
+        .then(response => {
+            console.log('Load notifications response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Load notifications response:', data);
+            if (data.success) {
+                displayNotifications(data.notifications);
+            } else {
+                content.innerHTML = `<div class="no-notifications">${data.message || 'Failed to load notifications'}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading notifications:', error);
+            content.innerHTML = '<div class="no-notifications">Failed to load notifications</div>';
+        });
+}
+
+function displayNotifications(notifications) {
+    const content = document.getElementById('notificationsContent');
+    
+    if (notifications.length === 0) {
+        content.innerHTML = '<div class="no-notifications"><i class="fas fa-bell-slash"></i><br>No notifications yet</div>';
+        return;
+    }
+    
+    const notificationsHtml = notifications.map(notification => `
+        <div class="notification-item ${notification.is_read ? '' : 'unread'}" onclick="markNotificationAsRead(${notification.id})">
+            <div class="notification-title">${notification.title}</div>
+            <div class="notification-message">${notification.message}</div>
+            <div class="notification-time">${notification.time_ago}</div>
+        </div>
+    `).join('');
+    
+    content.innerHTML = notificationsHtml;
+}
+
+function updateNotificationCount() {
+    fetch('/api/notifications')
+        .then(response => {
+            console.log('Notifications API response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Notifications API response:', data);
+            if (data.success) {
+                const countElement = document.getElementById('notificationCount');
+                if (countElement) {
+                    if (data.unread_count > 0) {
+                        countElement.textContent = data.unread_count;
+                        countElement.style.display = 'block';
+                    } else {
+                        countElement.style.display = 'none';
+                    }
+                }
+            } else {
+                console.log('Notifications API error:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating notification count:', error);
+        });
+}
+
+function markNotificationAsRead(notificationId) {
+    if (socket) {
+        socket.emit('mark_notification_read', { notification_id: notificationId });
+    }
+    updateNotificationCount();
+}
+
+function showNotificationToast(notification) {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = 'notification-toast';
+    toast.innerHTML = `
+        <div class="toast-content">
+            <strong>${notification.title}</strong>
+            <p>${notification.message}</p>
+        </div>
+        <button class="close-toast" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Show toast
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+}
+
+function showNewPostNotification(data) {
+    const notification = document.createElement('div');
+    notification.className = 'new-post-notification';
+    notification.innerHTML = `
+        <strong>New ${data.type} post!</strong>
+        <button class="close-notification" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+
+function addNewPostToFeed(data) {
+    // Add new post to the top of the feed
+    const postsContainer = document.querySelector('.newsfeed');
+    if (postsContainer && data.data) {
+        const newPostHtml = createPostHtml(data.data);
+        postsContainer.insertAdjacentHTML('afterbegin', newPostHtml);
+        
+        // Initialize interactions for the new post
+        setTimeout(() => {
+            const newPost = postsContainer.firstElementChild;
+            if (newPost) {
+                const likeBtn = newPost.querySelector('.like-btn');
+                const commentBtn = newPost.querySelector('.comment-btn');
+                
+                if (likeBtn && commentBtn) {
+                    const postId = likeBtn.dataset.postId;
+                    const postType = likeBtn.dataset.postType;
+                    
+                    fetch(`/api/post/interactions/${postId}/${postType}`)
+                        .then(response => response.json())
+                        .then(interactionData => {
+                            if (interactionData.success) {
+                                updateInteractionCounts(newPost, interactionData);
+                            }
+                        })
+                        .catch(error => console.error('Error loading interactions for new post:', error));
+                }
+            }
+        }, 500);
+    }
+}
+
+function createPostHtml(post) {
+    return `
+        <div class="post-card">
+            <div class="post-header">
+                <div class="post-info">
+                    <h3>${post.user.name}</h3>
+                    <span class="post-time">${post.timeAgo}</span>
+                </div>
+            </div>
+            <div class="post-content">
+                ${post.type === 'review' ? `
+                    <div class="review-content">
+                        <h4>${post.restaurant} - ${post.menuItem}</h4>
+                        <div class="rating">
+                            ${'⭐'.repeat(post.rating)}
+                            <span class="price">৳${post.price}</span>
+                        </div>
+                        <p>${post.comment}</p>
+                    </div>
+                ` : `
+                    <div class="homemade-content">
+                        <h4>${post.title}</h4>
+                        <p>${post.description}</p>
+                        <div class="food-details">
+                            <span class="price">৳${post.price}</span>
+                            <span class="location">📍${post.location}</span>
+                            ${post.isVegetarian ? '<span class="veg-tag">🌱 Vegetarian</span>' : ''}
+                        </div>
+                    </div>
+                `}
+                ${post.image ? `<img src="${post.image}" alt="Post image" class="post-image">` : ''}
+            </div>
+            <div class="post-actions">
+                <button class="action-btn like-btn" data-post-id="${post.id}" data-post-type="${post.type}">
+                    <i class="far fa-heart"></i> <span class="likes-count">0</span>
+                </button>
+                <button class="action-btn comment-btn" data-post-id="${post.id}" data-post-type="${post.type}">
+                    <i class="fas fa-comment"></i> <span class="comments-count">0</span>
+                </button>
+                <button class="action-btn share-btn">
+                    <i class="fas fa-share"></i> Share
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function showNotification(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `notification-toast ${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">
+            <p>${message}</p>
+        </div>
+        <button class="close-toast" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// ============================================================================
+// EVENT HANDLERS FOR MODALS
+// ============================================================================
+
+// Close comment modal when clicking outside
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('commentModal');
+    if (e.target === modal) {
+        closeCommentModal();
+    }
+});
+
+// Close comment modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('commentModal');
+        if (modal && modal.style.display === 'block') {
+            closeCommentModal();
+        }
+    }
+});
+
+// Close notifications panel when clicking outside
+document.addEventListener('click', function(e) {
+    const panel = document.getElementById('notificationsPanel');
+    const bell = document.querySelector('.notification-bell');
+    
+    if (panel && panel.style.display === 'block' && 
+        !panel.contains(e.target) && !bell.contains(e.target)) {
+        panel.style.display = 'none';
+    }
+});

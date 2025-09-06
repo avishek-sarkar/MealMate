@@ -328,4 +328,139 @@ def cleanup_expired_content():
         db.session.delete(item)
     
     db.session.commit()
-    return len(expired_reviews) + len(expired_posts) + len(expired_items)
+
+
+class Notification(db.Model):
+    """Real-time notification model"""
+    __tablename__ = 'notifications'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    type = db.Column(db.String(50), nullable=False)  # 'new_post', 'like', 'comment'
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    related_id = db.Column(db.Integer, nullable=True)  # ID of related post/review
+    related_type = db.Column(db.String(50), nullable=True)  # 'review', 'food_post'
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(days=7))
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('notifications', lazy=True))
+    
+    @property
+    def is_expired(self):
+        """Check if notification is expired"""
+        return datetime.utcnow() > self.expires_at
+    
+    def to_dict(self):
+        """Convert notification to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'type': self.type,
+            'title': self.title,
+            'message': self.message,
+            'related_id': self.related_id,
+            'related_type': self.related_type,
+            'is_read': self.is_read,
+            'created_at': self.created_at.isoformat(),
+            'expires_at': self.expires_at.isoformat(),
+            'time_ago': self.get_time_ago()
+        }
+    
+    def get_time_ago(self):
+        """Get human readable time ago"""
+        now = datetime.utcnow()
+        diff = now - self.created_at
+        
+        if diff.days > 0:
+            return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+        elif diff.seconds >= 3600:
+            hours = diff.seconds // 3600
+            return f"{hours} hour{'s' if hours > 1 else ''} ago"
+        elif diff.seconds >= 60:
+            minutes = diff.seconds // 60
+            return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+        else:
+            return "Just now"
+    
+    def __repr__(self):
+        return f'<Notification {self.title}>'
+
+
+class PostInteraction(db.Model):
+    """Model to track likes and comments on posts"""
+    __tablename__ = 'post_interactions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    post_id = db.Column(db.Integer, nullable=False)
+    post_type = db.Column(db.String(50), nullable=False)  # 'review', 'food_post'
+    interaction_type = db.Column(db.String(20), nullable=False)  # 'like', 'comment'
+    comment_text = db.Column(db.Text, nullable=True)  # Only for comments
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('post_interactions', lazy=True))
+    
+    @classmethod
+    def get_post_likes_count(cls, post_id, post_type):
+        """Get total likes for a post"""
+        return cls.query.filter_by(
+            post_id=post_id, 
+            post_type=post_type, 
+            interaction_type='like'
+        ).count()
+    
+    @classmethod
+    def get_post_comments_count(cls, post_id, post_type):
+        """Get total comments for a post"""
+        return cls.query.filter_by(
+            post_id=post_id, 
+            post_type=post_type, 
+            interaction_type='comment'
+        ).count()
+    
+    @classmethod
+    def user_has_liked(cls, user_id, post_id, post_type):
+        """Check if user has liked a post"""
+        return cls.query.filter_by(
+            user_id=user_id,
+            post_id=post_id,
+            post_type=post_type,
+            interaction_type='like'
+        ).first() is not None
+    
+    def to_dict(self):
+        """Convert interaction to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'username': self.user.username,
+            'post_id': self.post_id,
+            'post_type': self.post_type,
+            'interaction_type': self.interaction_type,
+            'comment_text': self.comment_text,
+            'created_at': self.created_at.isoformat(),
+            'time_ago': self.get_time_ago()
+        }
+    
+    def get_time_ago(self):
+        """Get human readable time ago"""
+        now = datetime.utcnow()
+        diff = now - self.created_at
+        
+        if diff.days > 0:
+            return f"{diff.days}d"
+        elif diff.seconds >= 3600:
+            hours = diff.seconds // 3600
+            return f"{hours}h"
+        elif diff.seconds >= 60:
+            minutes = diff.seconds // 60
+            return f"{minutes}m"
+        else:
+            return "now"
+    
+    def __repr__(self):
+        return f'<PostInteraction {self.interaction_type} by {self.user.username}>'
