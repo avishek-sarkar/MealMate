@@ -158,8 +158,31 @@ async function approveHotel(hotelId, hotelName) {
         
         if (result.success) {
             showMessage(result.message, 'success');
-            // Reload page to update status
-            setTimeout(() => location.reload(), 1500);
+            
+            // Update UI immediately without full page reload
+            const hotelRow = document.getElementById(`hotel-${hotelId}`);
+            const statusCell = hotelRow.cells[4]; // Status column
+            const actionsCell = hotelRow.cells[5]; // Actions column
+            
+            // Update status to approved
+            statusCell.innerHTML = `
+                <span class="badge bg-success">
+                    <i class="fas fa-check"></i> Approved
+                </span>
+                <span class="badge bg-info ms-1">
+                    <i class="fas fa-verified"></i> Verified
+                </span>
+                <br><small class="text-muted">${new Date().toISOString().split('T')[0]}</small>
+            `;
+            
+            // Remove approve button
+            const approveBtn = actionsCell.querySelector('.btn-success');
+            if (approveBtn) {
+                approveBtn.remove();
+            }
+            
+            // Also reload page after 2 seconds to ensure data consistency
+            setTimeout(() => location.reload(), 2000);
         } else {
             showMessage(result.message, 'danger');
         }

@@ -1083,34 +1083,6 @@ def create_app():
         
         return jsonify({'success': False, 'message': 'Not logged in'}), 401
 
-    @app.route('/debug-session')
-    def debug_session():
-        """Debug endpoint to check session status"""
-        return jsonify({
-            'session': dict(session),
-            'has_user_id': 'user_id' in session,
-            'has_hotel_owner_id': 'hotel_owner_id' in session,
-            'user_type': session.get('user_type'),
-            'require_login': require_login(),
-            'require_hotel_login': require_hotel_login()
-        })
-
-    @app.route('/test-hotel-login')
-    def test_hotel_login():
-        """Test endpoint to verify hotel login works"""
-        if require_hotel_login():
-            hotel = HotelOwner.query.get(session['hotel_owner_id'])
-            return jsonify({
-                'success': True,
-                'message': 'Hotel owner is logged in',
-                'hotel': hotel.to_dict()
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'message': 'Hotel owner not logged in'
-            }), 401
-
     # ==================================================================================
     # LEGACY API ROUTES (for backward compatibility)
     # ==================================================================================
@@ -1527,4 +1499,6 @@ def run_cleanup_scheduler():
 run_cleanup_scheduler()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Use environment variable for debug mode, default to False for production
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
