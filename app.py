@@ -136,12 +136,32 @@ def create_app():
         # Sort by creation time (newest first)
         all_posts.sort(key=lambda x: x['created_at'], reverse=True)
         
-        # Get hotel data
-        hotels = HotelOwner.query.filter_by(is_verified=True, is_active=True).all()
+        # Get hotel data with proper images
+        hotels = HotelOwner.query.filter_by(is_verified=True, is_active=True, is_approved=True).all()
         hotels_data = []
+        
+        # Restaurant images mapping (using live restaurant images)
+        restaurant_images = {
+            'Hotel Sareng': 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+            'MasterCafe': 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+            'Chondrobindu': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+            'Master Cafe': 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+            'chrondobindu Cafe': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+            'Hall': 'https://images.unsplash.com/photo-1559339352-11d035aa65de?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
+        }
+        
         for hotel in hotels:
             hotel_data = hotel.to_dict()
             hotel_data['menu_items'] = [item.to_dict() for item in available_menu_items if item.hotel_owner_id == hotel.id]
+            
+            # Add template-compatible fields
+            hotel_data['name'] = hotel.hotel_name
+            hotel_data['address'] = hotel.hotel_address
+            hotel_data['image'] = restaurant_images.get(hotel.hotel_name, 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')
+            hotel_data['cuisine_type'] = 'Bengali & Continental'
+            hotel_data['price_range'] = '₹80-250'
+            hotel_data['delivery_time'] = '25-35'
+            
             hotels_data.append(hotel_data)
         
         # Get sample data for dynamic placeholders
@@ -162,22 +182,9 @@ def create_app():
 
         return render_template('index.html', 
                              posts=all_posts,
+                             all_posts=all_posts,  # Ensure all_posts is available
                              hotels=hotels_data,
-                             homemade_food=[{
-                                 'id': post.id,
-                                 'seller': {
-                                     'name': post.user.username,
-                                     'avatar': 'https://via.placeholder.com/40x40'
-                                 },
-                                 'title': post.title,
-                                 'description': post.description,
-                                 'price': post.price,
-                                 'image': post.image_url or 'https://via.placeholder.com/300x200',
-                                 'location': post.location,
-                                 'isVegetarian': post.food_type == 'veg',
-                                 'servingSize': post.quantity,
-                                 'expiresIn': calculate_time_remaining(post.created_at)
-                             } for post in recent_food_posts],
+                             homemade_food=recent_food_posts,  # Pass raw posts for homemade section
                              sample_food_price=sample_food_price,
                              sample_food_quantity=sample_food_quantity,
                              sample_menu_price=sample_menu_price,
@@ -1395,7 +1402,10 @@ def create_app():
             return redirect(url_for('admin_login'))
         
         food_posts = StudentFoodPost.query.order_by(StudentFoodPost.created_at.desc()).all()
-        return render_template('admin/food_posts.html', food_posts=food_posts, current_admin=get_current_admin())
+        return render_template('admin/food_posts.html', 
+                             food_posts=food_posts, 
+                             current_admin=get_current_admin(),
+                             current_time=datetime.utcnow())
     
     @app.route('/admin/delete-food-post/<int:post_id>', methods=['DELETE'])
     def delete_food_post(post_id):

@@ -457,6 +457,46 @@ body {
 }
 
 /* ============================================================================
+   MAIN CONTENT SECTIONS
+   ============================================================================ */
+.main-content {
+    padding: 2rem 0;
+}
+
+.section {
+    padding: 3rem 0;
+    background-color: white;
+}
+
+.section.active {
+    display: block;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: #333;
+    font-weight: 700;
+}
+
+.section-title i {
+    color: #ff6b35;
+    margin-right: 10px;
+}
+
+/* Newsfeed specific styles */
+.newsfeed {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.newsfeed .post-card {
+    margin-bottom: 2rem;
+}
+
+/* ============================================================================
    FILTER TABS
    ============================================================================ */
 .filter-tabs {
@@ -491,15 +531,16 @@ body {
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 3rem;
 }
 
 .post-card {
     background-color: white;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    padding: 1.5rem;
+    padding: 0;
     transition: transform 0.3s ease;
+    overflow: hidden;
 }
 
 .post-card:hover {
@@ -511,6 +552,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+    padding: 1.5rem 1.5rem 0 1.5rem;
 }
 
 .user-info {
@@ -523,11 +565,13 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
+    object-fit: cover;
 }
 
 .user-details h4 {
     margin-bottom: 0.25rem;
     color: #333;
+    font-size: 1rem;
 }
 
 .post-time {
@@ -589,9 +633,19 @@ body {
     margin-left: auto;
 }
 
+.post-content {
+    padding: 0 1.5rem 1rem 1.5rem;
+}
+
 .post-content h3 {
     margin-bottom: 1rem;
     color: #333;
+}
+
+.post-content h4 {
+    margin-bottom: 0.75rem;
+    color: #333;
+    font-size: 1.1rem;
 }
 
 .post-content p {
@@ -602,14 +656,26 @@ body {
 
 .post-image {
     margin: 1rem 0;
-    border-radius: 8px;
+    width: 100%;
+    max-height: 400px;
     overflow: hidden;
+    border-radius: 0;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .post-image img {
     width: 100%;
-    height: auto;
+    height: 300px;
+    object-fit: cover;
     display: block;
+    transition: transform 0.3s ease;
+}
+
+.post-image img:hover {
+    transform: scale(1.02);
 }
 
 .food-details {
@@ -617,6 +683,7 @@ body {
     gap: 1.5rem;
     margin: 1rem 0;
     flex-wrap: wrap;
+    padding: 0 1.5rem;
 }
 
 .detail-item {
@@ -636,8 +703,9 @@ body {
     gap: 1rem;
     align-items: center;
     margin-top: 1rem;
-    padding-top: 1rem;
+    padding: 1rem 1.5rem;
     border-top: 1px solid #e9ecef;
+    background-color: #f8f9fa;
 }
 
 .action-btn {
@@ -669,6 +737,67 @@ body {
 
 .time-remaining i {
     color: #ff6b35;
+}
+
+/* Content sections inside posts */
+.review-content {
+    padding: 0;
+}
+
+.review-content h4 {
+    margin-bottom: 0.75rem;
+    color: #333;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.review-content .rating {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.review-content .rating .price {
+    font-size: 1rem;
+}
+
+.homemade-content {
+    padding: 0;
+}
+
+.homemade-content h4 {
+    margin-bottom: 0.75rem;
+    color: #333;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.homemade-content .food-details {
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.homemade-content .food-details .price {
+    font-size: 1rem;
+    margin-left: 0;
+}
+
+.homemade-content .food-details .location {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.homemade-content .food-details .veg-tag {
+    background-color: #28a745;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
 /* ============================================================================
@@ -867,6 +996,28 @@ body {
     color: #777;
     font-size: 0.9rem;
     margin: 0.5rem 0;
+}
+
+.food-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #eee;
+}
+
+.food-actions .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.quantity-info {
+    color: #666;
+    font-size: 0.85rem;
+    background-color: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
 }
 
 .food-rating {
@@ -1169,6 +1320,46 @@ body {
         gap: 2rem;
     }
     
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .posts-container {
+        padding: 0 1rem;
+        gap: 2.5rem;
+    }
+    
+    .post-card {
+        margin: 0 0.5rem;
+    }
+    
+    .post-header {
+        padding: 1rem 1rem 0 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .post-content {
+        padding: 0 1rem 1rem 1rem;
+    }
+    
+    .post-image img {
+        height: 250px;
+    }
+    
+    .post-actions {
+        padding: 1rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .food-details {
+        padding: 0 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
     .section-header h2 {
         font-size: 2rem;
     }
@@ -1212,10 +1403,45 @@ body {
         padding: 0 15px;
     }
     
-    .post-card,
+    .posts-container {
+        gap: 2rem;
+    }
+    
+    .post-card {
+        margin: 0 5px;
+        border-radius: 8px;
+    }
+    
     .hotel-card,
     .homemade-card {
         margin: 0 10px;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+    }
+    
+    .post-header {
+        padding: 0.75rem 0.75rem 0 0.75rem;
+    }
+    
+    .post-content {
+        padding: 0 0.75rem 0.75rem 0.75rem;
+    }
+    
+    .post-image img {
+        height: 200px;
+    }
+    
+    .post-actions {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+    
+    .action-btn {
+        font-size: 0.85rem;
+        padding: 4px 8px;
     }
     
     .hero-content h1 {
@@ -1963,4 +2189,157 @@ body {
 .user-avatar,
 .user-avatar-small {
     display: none;
+}
+
+/* ============================================================================
+   MENU GRID STYLES
+   ============================================================================ */
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.menu-item-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #eee;
+}
+
+.menu-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.menu-item-image {
+    position: relative;
+    height: 150px;
+    overflow: hidden;
+}
+
+.menu-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.menu-item-card:hover .menu-item-image img {
+    transform: scale(1.05);
+}
+
+.menu-item-info {
+    padding: 16px;
+}
+
+.menu-item-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+    line-height: 1.3;
+}
+
+.menu-item-description {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 12px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.menu-item-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.menu-item-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.menu-item-category {
+    background: var(--secondary-color);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    text-transform: capitalize;
+}
+
+.menu-item-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.menu-item-availability {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.menu-item-availability.available {
+    color: #28a745;
+}
+
+.menu-item-availability.unavailable {
+    color: #dc3545;
+}
+
+/* Menu modal specific styles */
+#viewMenuModal .modal-content {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#menuLoadingMessage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    color: #666;
+}
+
+#noMenuMessage {
+    color: #666;
+}
+
+#noMenuMessage i {
+    display: block;
+    margin-bottom: 16px;
+}
+
+/* Responsive adjustments for menu grid */
+@media (max-width: 768px) {
+    .menu-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+        padding: 15px 0;
+    }
+    
+    .menu-item-image {
+        height: 120px;
+    }
+    
+    .menu-item-info {
+        padding: 12px;
+    }
+    
+    #viewMenuModal .modal-content {
+        margin: 10px;
+        max-height: 90vh;
+    }
 }

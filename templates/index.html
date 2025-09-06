@@ -184,7 +184,7 @@
                                 <span class="delivery-time">{{ hotel.delivery_time }} mins</span>
                             </div>
                         </div>
-                        <button class="btn btn-primary btn-full">View Menu</button>
+                        <button class="btn btn-primary btn-full" onclick="viewHotelMenu({{ hotel.id }}, '{{ hotel.hotel_name }}')">View Menu</button>
                     </div>
                     {% endfor %}
                 </div>
@@ -196,32 +196,35 @@
             <div class="container">
                 <h2 class="section-title">Homemade Food</h2>
                 <div class="homemade-grid">
-                    {% for post in all_posts %}
-                        {% if post.type == 'homemade' %}
-                            <div class="food-card">
-                                <img src="{{ post.image }}" alt="{{ post.title }}" class="food-image">
-                                <div class="food-info">
-                                    <h3>{{ post.title }}</h3>
-                                    <p class="food-maker">by {{ post.user.name }}</p>
-                                    <p class="food-price">৳{{ post.price }}</p>
-                                    <div class="food-rating">
-                                        {% if post.isVegetarian %}
-                                            <span class="badge badge-success">Veg</span>
-                                        {% endif %}
-                                        <small class="text-muted">{{ post.timeAgo }}</small>
-                                    </div>
-                                    <p class="food-location">
-                                        <i class="fas fa-map-marker-alt"></i> {{ post.location }}
-                                    </p>
-                                    <p class="food-description">{{ post.description[:80] }}...</p>
+                    {% for post in homemade_food %}
+                        <div class="food-card">
+                            <img src="{{ post.image_url or 'https://via.placeholder.com/300x200' }}" alt="{{ post.title }}" class="food-image">
+                            <div class="food-info">
+                                <h3>{{ post.title }}</h3>
+                                <p class="food-maker">by {{ post.user.username }}</p>
+                                <p class="food-price">৳{{ post.price }}</p>
+                                <div class="food-rating">
+                                    {% if post.food_type == 'veg' %}
+                                        <span class="badge badge-success">Veg</span>
+                                    {% endif %}
+                                    <small class="text-muted">{{ post.created_at.strftime('%b %d, %Y') }}</small>
+                                </div>
+                                <p class="food-location">
+                                    <i class="fas fa-map-marker-alt"></i> {{ post.location }}
+                                </p>
+                                <p class="food-description">{{ post.description[:80] }}{% if post.description|length > 80 %}...{% endif %}</p>
+                                <div class="food-actions">
+                                    <button class="btn btn-primary btn-sm">
+                                        <i class="fas fa-phone"></i> Contact
+                                    </button>
+                                    <span class="quantity-info">{{ post.quantity }} portions</span>
                                 </div>
                             </div>
-                        {% endif %}
+                        </div>
                     {% endfor %}
                     
                     <!-- If no homemade food posts, show a message -->
-                    {% set homemade_count = all_posts|selectattr("type", "equalto", "homemade")|list|length %}
-                    {% if homemade_count == 0 %}
+                    {% if homemade_food|length == 0 %}
                         <div class="food-card no-food-message">
                             <div class="text-center py-4">
                                 <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
@@ -660,6 +663,30 @@
                     </div>
                     <button type="submit" class="btn btn-primary btn-full">Add to Menu</button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Menu Modal -->
+    <div id="viewMenuModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="menuModalTitle">Restaurant Menu</h2>
+                <span class="close" onclick="closeModal('viewMenuModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="menuLoadingMessage" class="text-center" style="padding: 20px;">
+                    <i class="fas fa-spinner fa-spin"></i> Loading menu...
+                </div>
+                <div id="menuContent" style="display: none;">
+                    <div id="menuGrid" class="menu-grid">
+                        <!-- Menu items will be loaded here dynamically -->
+                    </div>
+                    <div id="noMenuMessage" class="text-center" style="display: none; padding: 40px;">
+                        <i class="fas fa-utensils" style="font-size: 48px; color: #ccc; margin-bottom: 16px;"></i>
+                        <p style="color: #666;">No menu items available at the moment.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

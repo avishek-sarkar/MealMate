@@ -58,7 +58,7 @@
                                 </td>
                                 <td>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                                 <td>
-                                    {% if post.expires_at > moment.utcnow() %}
+                                    {% if post.expires_at > current_time %}
                                         <span class="badge bg-success">
                                             <i class="fas fa-check"></i> Active
                                         </span>

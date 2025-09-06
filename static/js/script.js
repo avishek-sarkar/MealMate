@@ -900,3 +900,85 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// View Hotel Menu functionality
+async function viewHotelMenu(hotelId, hotelName) {
+    const modal = document.getElementById('viewMenuModal');
+    const modalTitle = document.getElementById('menuModalTitle');
+    const loadingMessage = document.getElementById('menuLoadingMessage');
+    const menuContent = document.getElementById('menuContent');
+    const menuGrid = document.getElementById('menuGrid');
+    const noMenuMessage = document.getElementById('noMenuMessage');
+    
+    // Set hotel name in modal title
+    modalTitle.textContent = `${hotelName} - Menu`;
+    
+    // Show modal
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    // Show loading state
+    loadingMessage.style.display = 'block';
+    menuContent.style.display = 'none';
+    
+    try {
+        // Fetch menu items
+        const response = await fetch(`/api/menu-items/${hotelId}`);
+        const menuItems = await response.json();
+        
+        // Hide loading message
+        loadingMessage.style.display = 'none';
+        menuContent.style.display = 'block';
+        
+        if (menuItems && menuItems.length > 0) {
+            // Display menu items
+            menuGrid.innerHTML = '';
+            noMenuMessage.style.display = 'none';
+            
+            menuItems.forEach(item => {
+                const menuCard = createMenuCard(item);
+                menuGrid.appendChild(menuCard);
+            });
+        } else {
+            // Show no menu message
+            menuGrid.innerHTML = '';
+            noMenuMessage.style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('Error fetching menu:', error);
+        loadingMessage.style.display = 'none';
+        menuContent.style.display = 'block';
+        menuGrid.innerHTML = '<p class="text-center" style="color: #666; padding: 20px;">Failed to load menu. Please try again.</p>';
+        noMenuMessage.style.display = 'none';
+    }
+}
+
+// Create menu card element
+function createMenuCard(item) {
+    const card = document.createElement('div');
+    card.className = 'menu-item-card';
+    
+    const imageUrl = item.image_url || 'https://via.placeholder.com/200x150?text=Food+Item';
+    
+    card.innerHTML = `
+        <div class="menu-item-image">
+            <img src="${imageUrl}" alt="${item.item_name}" onerror="this.src='https://via.placeholder.com/200x150?text=Food+Item'">
+        </div>
+        <div class="menu-item-info">
+            <h4 class="menu-item-name">${item.item_name}</h4>
+            <p class="menu-item-description">${item.description || 'No description available'}</p>
+            <div class="menu-item-details">
+                <span class="menu-item-price">৳${item.price}</span>
+                <span class="menu-item-category">${item.category}</span>
+            </div>
+            <div class="menu-item-meta">
+                <span class="menu-item-availability ${item.is_available ? 'available' : 'unavailable'}">
+                    ${item.is_available ? '● Available' : '● Unavailable'}
+                </span>
+            </div>
+        </div>
+    `;
+    
+    return card;
+}
