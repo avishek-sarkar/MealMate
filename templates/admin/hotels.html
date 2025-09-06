@@ -1,0 +1,212 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Manage Hotels - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-building"></i> Manage Hotels
+        </h1>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="row mb-4">
+    <div class="col-12">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link {{ 'active' if status == 'all' else '' }}" 
+                   href="{{ url_for('admin_hotels', status='all') }}">All Hotels</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ 'active' if status == 'pending' else '' }}" 
+                   href="{{ url_for('admin_hotels', status='pending') }}">
+                   Pending Approval <span class="badge bg-warning">{{ hotels|selectattr('is_approved', 'equalto', False)|list|length }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ 'active' if status == 'approved' else '' }}" 
+                   href="{{ url_for('admin_hotels', status='approved') }}">Approved</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Hotels Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>
+                    {% if status == 'pending' %}
+                        <i class="fas fa-clock text-warning"></i> Pending Hotel Approvals
+                    {% elif status == 'approved' %}
+                        <i class="fas fa-check-circle text-success"></i> Approved Hotels
+                    {% else %}
+                        <i class="fas fa-building"></i> All Hotels
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if hotels %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Hotel Details</th>
+                                <th>Owner Info</th>
+                                <th>Contact</th>
+                                <th>Registration</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hotel in hotels %}
+                            <tr id="hotel-{{ hotel.id }}">
+                                <td>
+                                    <strong>{{ hotel.hotel_name }}</strong><br>
+                                    <small class="text-muted">{{ hotel.hotel_address }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ hotel.username }}</strong><br>
+                                    <small class="text-muted">{{ hotel.email }}</small>
+                                </td>
+                                <td>
+                                    {{ hotel.contact_number }}<br>
+                                    {% if hotel.license_number %}
+                                        <small class="text-muted">License: {{ hotel.license_number }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ hotel.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if hotel.is_approved %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Approved
+                                        </span>
+                                        {% if hotel.is_verified %}
+                                            <br><span class="badge bg-primary">
+                                                <i class="fas fa-shield-alt"></i> Verified
+                                            </span>
+                                        {% endif %}
+                                        {% if hotel.approved_at %}
+                                            <br><small class="text-muted">{{ hotel.approved_at.strftime('%Y-%m-%d') }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock"></i> Pending
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        {% if not hotel.is_approved %}
+                                            <button class="btn btn-success btn-sm" 
+                                                    onclick="approveHotel({{ hotel.id }}, '{{ hotel.hotel_name }}')">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                        {% endif %}
+                                        <button class="btn btn-danger btn-sm" 
+                                                onclick="deleteHotel({{ hotel.id }}, '{{ hotel.hotel_name }}')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hotels found</h5>
+                    {% if status == 'pending' %}
+                        <p class="text-muted">No hotels are currently waiting for approval.</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Message Alert -->
+<div id="messageAlert" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+    <span id="messageText"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function approveHotel(hotelId, hotelName) {
+    if (!confirm(`Are you sure you want to approve hotel "${hotelName}"?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/approve-hotel/${hotelId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showMessage(result.message, 'success');
+            // Reload page to update status
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showMessage(result.message, 'danger');
+        }
+    } catch (error) {
+        showMessage('Failed to approve hotel. Please try again.', 'danger');
+    }
+}
+
+async function deleteHotel(hotelId, hotelName) {
+    if (!confirm(`Are you sure you want to delete hotel "${hotelName}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/delete-hotel/${hotelId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showMessage(result.message, 'success');
+            // Remove row from table
+            document.getElementById(`hotel-${hotelId}`).remove();
+        } else {
+            showMessage(result.message, 'danger');
+        }
+    } catch (error) {
+        showMessage('Failed to delete hotel. Please try again.', 'danger');
+    }
+}
+
+function showMessage(message, type) {
+    const alert = document.getElementById('messageAlert');
+    const messageText = document.getElementById('messageText');
+    
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    messageText.textContent = message;
+    alert.classList.remove('d-none');
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        alert.classList.add('d-none');
+    }, 5000);
+}
+</script>
+{% endblock %}

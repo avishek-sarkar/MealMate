@@ -9,6 +9,40 @@ from werkzeug.security import generate_password_hash, check_password_hash
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 
+class Admin(db.Model):
+    """Admin user model"""
+    __tablename__ = 'admins'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=True)
+    is_super_admin = db.Column(db.Boolean, default=False)
+    
+    def set_password(self, password):
+        """Hash and set password"""
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        """Check if provided password matches hash"""
+        return check_password_hash(self.password_hash, password)
+    
+    def to_dict(self):
+        """Convert admin to dictionary"""
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'created_at': self.created_at.isoformat(),
+            'is_active': self.is_active,
+            'is_super_admin': self.is_super_admin
+        }
+    
+    def __repr__(self):
+        return f'<Admin {self.username}>'
+
 class User(db.Model):
     """Student user model"""
     __tablename__ = 'users'
@@ -20,6 +54,9 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
+    is_approved = db.Column(db.Boolean, default=False)  # Admin approval required
+    approved_by = db.Column(db.Integer, db.ForeignKey('admins.id'), nullable=True)
+    approved_at = db.Column(db.DateTime, nullable=True)
     
     # Relationships
     reviews = db.relationship('Review', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -40,7 +77,10 @@ class User(db.Model):
             'username': self.username,
             'reg_number': self.reg_number,
             'email': self.email,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
+            'is_active': self.is_active,
+            'is_approved': self.is_approved,
+            'approved_at': self.approved_at.isoformat() if self.approved_at else None
         }
     
     def __repr__(self):
@@ -60,6 +100,9 @@ class HotelOwner(db.Model):
     contact_number = db.Column(db.String(15), nullable=False)
     license_number = db.Column(db.String(50), nullable=True)
     is_verified = db.Column(db.Boolean, default=False)
+    is_approved = db.Column(db.Boolean, default=False)  # Admin approval required
+    approved_by = db.Column(db.Integer, db.ForeignKey('admins.id'), nullable=True)
+    approved_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
     
@@ -84,6 +127,8 @@ class HotelOwner(db.Model):
             'hotel_address': self.hotel_address,
             'contact_number': self.contact_number,
             'is_verified': self.is_verified,
+            'is_approved': self.is_approved,
+            'approved_at': self.approved_at.isoformat() if self.approved_at else None,
             'created_at': self.created_at.isoformat()
         }
     

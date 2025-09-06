@@ -130,9 +130,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (hotelLoginForm) {
         hotelLoginForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            console.log('Hotel login form submitted');
             
             const formData = new FormData(this);
             formData.append('user_type', 'hotel');
+            console.log('Login data:', Object.fromEntries(formData));
             
             fetch('/login', {
                 method: 'POST',
@@ -140,7 +142,9 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
+                console.log('Hotel login response:', data);
                 if (data.success) {
+                    alert('Hotel login successful!');
                     window.location.reload();
                 } else {
                     alert(data.message || 'Login failed');
@@ -151,6 +155,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('An error occurred during login');
             });
         });
+    } else {
+        console.log('Hotel login form not found');
     }
 
     // Student registration form
@@ -244,6 +250,41 @@ function showDashboard() {
     document.getElementById('dashboardModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
     
+    // First check what type of user is logged in
+    fetch('/get-profile')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.type === 'hotel') {
+                    // Hotel owner dashboard
+                    document.getElementById('studentDashboard').style.display = 'none';
+                    document.getElementById('hotelDashboard').style.display = 'block';
+                    document.getElementById('dashboardTitle').textContent = 'Hotel Dashboard';
+                    
+                    // Load hotel menu and stats
+                    loadDashboardContent();
+                } else {
+                    // Student dashboard
+                    document.getElementById('studentDashboard').style.display = 'block';
+                    document.getElementById('hotelDashboard').style.display = 'none';
+                    document.getElementById('dashboardTitle').textContent = 'My Dashboard';
+                    
+                    // Load student posts
+                    loadDashboardContent();
+                }
+            } else {
+                // Fallback - try both approaches
+                tryLoadStudentDashboard();
+            }
+        })
+        .catch(error => {
+            console.error('Error checking profile:', error);
+            // Fallback - try both approaches
+            tryLoadStudentDashboard();
+        });
+}
+
+function tryLoadStudentDashboard() {
     // Check user type and show appropriate dashboard
     fetch('/my-posts')
         .then(response => response.json())
@@ -268,6 +309,7 @@ function showDashboard() {
                         document.getElementById('hotelDashboard').style.display = 'block';
                         document.getElementById('dashboardTitle').textContent = 'Hotel Dashboard';
                         displayHotelMenu(data.menu_items);
+                        loadMenuStats(); // Load stats for hotel dashboard
                     }
                 })
                 .catch(error => console.error('Error loading dashboard:', error));
@@ -285,6 +327,110 @@ function showPostFoodModal() {
 
 function showAddMenuModal() {
     document.getElementById('addMenuModal').style.display = 'block';
+    console.log('Add menu modal opened');
+}
+
+// Delete menu item function
+function deleteMenuItem(itemId) {
+    if (!confirm('Are you sure you want to delete this menu item? This action cannot be undone.')) {
+        return;
+    }
+    
+    fetch(`/delete-menu-item/${itemId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Menu item deleted successfully!');
+            loadDashboardContent(); // Refresh the dashboard
+        } else {
+            alert(data.message || 'Failed to delete menu item');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting the menu item');
+    });
+}
+
+// Toggle menu availability function
+function toggleMenuAvailability(itemId) {
+    fetch(`/toggle-menu-availability/${itemId}`, {
+        method: 'PUT'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            loadDashboardContent(); // Refresh the dashboard
+        } else {
+            alert(data.message || 'Failed to update menu item');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating the menu item');
+    });
+}
+
+// Load menu statistics
+function loadMenuStats() {
+    fetch('/menu-stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const stats = data.stats;
+                document.getElementById('totalItems').textContent = stats.total_items;
+                document.getElementById('activeItems').textContent = stats.active_items;
+                document.getElementById('expiredItems').textContent = stats.expired_items;
+                document.getElementById('recentReviews').textContent = stats.recent_reviews;
+            } else {
+                console.error('Failed to load stats:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading stats:', error);
+        });
+}
+
+// Manual cleanup function
+function manualCleanup() {
+    if (!confirm('This will permanently delete all expired menu items, reviews, and posts. Continue?')) {
+        return;
+    }
+    
+    fetch('/cleanup-expired', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            loadMenuStats(); // Refresh stats
+            loadDashboardContent(); // Refresh dashboard
+        } else {
+            alert(data.message || 'Cleanup failed');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during cleanup');
+    });
+}
+
+// Test hotel login function (debugging)
+function testHotelLogin() {
+    fetch('/test-hotel-login')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Hotel login test:', data);
+            alert(JSON.stringify(data, null, 2));
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error testing hotel login');
+        });
 }
 
 function showSettingsModal() {
@@ -374,15 +520,33 @@ function switchHotelSettingsTab(tab) {
 
 // Load dashboard content
 function loadDashboardContent() {
-    fetch('/my-posts')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displayUserReviews(data.reviews);
-                displayUserFoods(data.food_posts);
-            }
-        })
-        .catch(error => console.error('Error loading dashboard:', error));
+    // Check if it's a hotel dashboard
+    const hotelDashboard = document.getElementById('hotelDashboard');
+    if (hotelDashboard && hotelDashboard.style.display !== 'none') {
+        // Load hotel menu items
+        fetch('/my-menu')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayHotelMenu(data.menu_items);
+                }
+            })
+            .catch(error => console.error('Error loading hotel menu:', error));
+        
+        // Load hotel stats
+        loadMenuStats();
+    } else {
+        // Load student dashboard
+        fetch('/my-posts')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayUserReviews(data.reviews);
+                    displayUserFoods(data.food_posts);
+                }
+            })
+            .catch(error => console.error('Error loading dashboard:', error));
+    }
 }
 
 // Display user reviews
@@ -417,7 +581,7 @@ function displayUserFoods(foods) {
         <div class="dashboard-post">
             <div class="post-header">
                 <h4>${food.title}</h4>
-                <span class="price">₹${food.price}</span>
+                <span class="price">৳${food.price}</span>
                 <span class="status ${food.is_available ? 'available' : 'unavailable'}">
                     ${food.is_available ? 'Available' : 'Sold Out'}
                 </span>
@@ -440,22 +604,44 @@ function displayHotelMenu(menuItems) {
         return;
     }
     
-    container.innerHTML = menuItems.map(item => `
-        <div class="dashboard-post">
+    container.innerHTML = menuItems.map(item => {
+        const timeRemaining = item.time_remaining || '0:00:00';
+        const isExpired = item.is_expired || false;
+        const hoursLeft = timeRemaining.split(':')[0];
+        const minutesLeft = timeRemaining.split(':')[1];
+        
+        return `
+        <div class="dashboard-post menu-item-card ${isExpired ? 'expired' : ''}" data-item-id="${item.id}">
             <div class="post-header">
-                <h4>${item.item_name}</h4>
-                <span class="price">₹${item.price}</span>
-                <span class="status ${item.is_available ? 'available' : 'unavailable'}">
-                    ${item.is_available ? 'Available' : 'Unavailable'}
-                </span>
+                <div class="menu-item-info">
+                    <h4>${item.item_name}</h4>
+                    <span class="price">৳${item.price}</span>
+                </div>
+                <div class="menu-item-controls">
+                    <button class="btn btn-sm ${item.is_available ? 'btn-success' : 'btn-warning'}" 
+                            onclick="toggleMenuAvailability(${item.id})" 
+                            title="${item.is_available ? 'Mark as Unavailable' : 'Mark as Available'}">
+                        ${item.is_available ? '✓ Available' : '⚠ Unavailable'}
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteMenuItem(${item.id})" title="Delete Item">
+                        🗑️
+                    </button>
+                </div>
             </div>
-            <p>${item.description}</p>
+            <p class="menu-description">${item.description}</p>
             <div class="post-details">
-                <span>🍽️ ${item.category}</span>
+                <span class="category-tag">🍽️ ${item.category}</span>
+                <span class="rating-info">⭐ ${item.average_rating || 0}/5 (${item.review_count || 0} reviews)</span>
             </div>
-            <small class="post-time">Added ${item.created_at ? new Date(item.created_at).toLocaleDateString() : 'recently'}</small>
+            <div class="time-info">
+                <small class="post-time">Added ${item.created_at ? new Date(item.created_at).toLocaleDateString() : 'recently'}</small>
+                <small class="expiry-time ${isExpired ? 'expired' : (hoursLeft < 2 ? 'expiring-soon' : '')}">
+                    ${isExpired ? '⏰ Expired' : `⏰ ${hoursLeft}h ${minutesLeft}m left`}
+                </small>
+            </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
 }
 
 // Load restaurants for review form
@@ -488,7 +674,7 @@ function loadMenuItems() {
         .then(data => {
             menuSelect.innerHTML = '<option value="">Select a menu item</option>';
             data.forEach(item => {
-                menuSelect.innerHTML += `<option value="${item.id}">${item.item_name} - ₹${item.price}</option>`;
+                menuSelect.innerHTML += `<option value="${item.id}">${item.item_name} - ৳${item.price}</option>`;
             });
         })
         .catch(error => {
@@ -566,15 +752,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (menuForm) {
         menuForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            console.log('Menu form submitted');
             
             const formData = new FormData(this);
+            console.log('Form data:', Object.fromEntries(formData));
             
             fetch('/add-menu-item', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
                 if (data.success) {
                     alert('Menu item added successfully!');
                     closeModal('addMenuModal');
@@ -590,6 +782,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('An error occurred while adding menu item');
             });
         });
+    } else {
+        console.log('Menu form not found');
     }
     
     // Profile form submission

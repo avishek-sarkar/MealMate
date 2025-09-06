@@ -1,8 +1,38 @@
+# MealMate - Trishal Campus Food Hub
+# Python dependencies for Flask web application
+
+# Core Flask framework
 Flask==2.3.3
+Werkzeug==2.3.7
+Jinja2==3.1.2
+
+# Database ORM and migrations
 Flask-SQLAlchemy==3.0.5
 Flask-Migrate==4.0.5
+
+# Authentication and security
 Flask-Bcrypt==1.0.1
-Jinja2==3.1.2
+
+# Environment variables
 python-dotenv==1.0.0
+
+# CORS support (for API endpoints)
 Flask-CORS==4.0.0
-Werkzeug==2.3.7
+
+# Date and time utilities (built-in)
+# datetime, timedelta - part of Python standard library
+
+# Threading support (built-in)
+# threading, time - part of Python standard library
+
+# Logging (built-in)
+# logging - part of Python standard library
+
+# Operating system interface (built-in)
+# os - part of Python standard library
+
+# Development dependencies (optional)
+# Uncomment if needed for development
+# flask-debugtoolbar==0.13.1
+# pytest==7.4.0
+# pytest-flask==1.2.0

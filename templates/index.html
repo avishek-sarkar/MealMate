@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MealMate - Campus Food Hub</title>
+    <title>MealMate - Trishal Campus Food Hub | Mymensingh, Dhaka</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -79,7 +79,7 @@
                                     <h4>{{ post.restaurant }} - {{ post.menuItem }}</h4>
                                     <div class="rating">
                                         {% for i in range(post.rating) %}⭐{% endfor %}
-                                        <span class="price">₹{{ post.price }}</span>
+                                        <span class="price">৳{{ post.price }}</span>
                                     </div>
                                     <p>{{ post.comment }}</p>
                                 </div>
@@ -88,7 +88,7 @@
                                     <h4>{{ post.title }}</h4>
                                     <p>{{ post.description }}</p>
                                     <div class="food-details">
-                                        <span class="price">₹{{ post.price }}</span>
+                                        <span class="price">৳{{ post.price }}</span>
                                         <span class="location">📍{{ post.location }}</span>
                                         {% if post.isVegetarian %}<span class="veg-tag">🌱 Vegetarian</span>{% endif %}
                                     </div>
@@ -128,7 +128,7 @@
                             </div>
                             <p class="hotel-cuisine">{{ hotel.cuisine_type }}</p>
                             <div class="hotel-price">
-                                <span class="price-range">₹{{ hotel.price_range }}</span>
+                                <span class="price-range">৳{{ hotel.price_range }}</span>
                                 <span class="delivery-time">{{ hotel.delivery_time }} mins</span>
                             </div>
                         </div>
@@ -144,33 +144,43 @@
             <div class="container">
                 <h2 class="section-title">Homemade Food</h2>
                 <div class="homemade-grid">
-                    <div class="food-card">
-                        <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300&h=200&fit=crop" alt="Homemade Pizza" class="food-image">
-                        <div class="food-info">
-                            <h3>Homemade Pizza</h3>
-                            <p class="food-maker">by Sarah Wilson</p>
-                            <p class="food-price">₹150</p>
-                            <div class="food-rating">★★★★★</div>
+                    {% for post in all_posts %}
+                        {% if post.type == 'homemade' %}
+                            <div class="food-card">
+                                <img src="{{ post.image }}" alt="{{ post.title }}" class="food-image">
+                                <div class="food-info">
+                                    <h3>{{ post.title }}</h3>
+                                    <p class="food-maker">by {{ post.user.name }}</p>
+                                    <p class="food-price">৳{{ post.price }}</p>
+                                    <div class="food-rating">
+                                        {% if post.isVegetarian %}
+                                            <span class="badge badge-success">Veg</span>
+                                        {% endif %}
+                                        <small class="text-muted">{{ post.timeAgo }}</small>
+                                    </div>
+                                    <p class="food-location">
+                                        <i class="fas fa-map-marker-alt"></i> {{ post.location }}
+                                    </p>
+                                    <p class="food-description">{{ post.description[:80] }}...</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <!-- If no homemade food posts, show a message -->
+                    {% set homemade_count = all_posts|selectattr("type", "equalto", "homemade")|list|length %}
+                    {% if homemade_count == 0 %}
+                        <div class="food-card no-food-message">
+                            <div class="text-center py-4">
+                                <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No homemade food available right now</h5>
+                                <p class="text-muted">Be the first to share your homemade delicious food!</p>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#homemadeModal">
+                                    <i class="fas fa-plus"></i> Post Your Food
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="food-card">
-                        <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=300&h=200&fit=crop" alt="Traditional Curry" class="food-image">
-                        <div class="food-info">
-                            <h3>Traditional Curry</h3>
-                            <p class="food-maker">by Priya Sharma</p>
-                            <p class="food-price">₹120</p>
-                            <div class="food-rating">★★★★☆</div>
-                        </div>
-                    </div>
-                    <div class="food-card">
-                        <img src="https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=300&h=200&fit=crop" alt="Fresh Sandwiches" class="food-image">
-                        <div class="food-info">
-                            <h3>Fresh Sandwiches</h3>
-                            <p class="food-maker">by Mike Chen</p>
-                            <p class="food-price">₹80</p>
-                            <div class="food-rating">★★★★☆</div>
-                        </div>
-                    </div>
+                    {% endif %}
                 </div>
             </div>
         </section>
@@ -180,7 +190,7 @@
             <div class="container">
                 <h2 class="section-title">About MealMate</h2>
                 <div class="about-content">
-                    <p>MealMate is your ultimate campus food companion, connecting students with the best local dining options and homemade food from fellow students. Our platform makes it easy to discover, order, and enjoy amazing food right on your campus.</p>
+                    <p>MealMate is your ultimate campus food companion for Trishal Campus in Mymensingh, Dhaka. We connect students with the best local dining options and homemade food from fellow students. Our platform makes it easy to discover, order, and enjoy amazing Bangladeshi food right on your campus.</p>
                     
                     <div class="features-grid">
                         <div class="feature">
@@ -382,6 +392,35 @@
                         <button class="btn btn-secondary" onclick="showHotelSettingsModal()">
                             <i class="fas fa-cog"></i> Business Settings
                         </button>
+                        <button class="btn btn-info" onclick="loadMenuStats()">
+                            <i class="fas fa-chart-bar"></i> Refresh Stats
+                        </button>
+                        <button class="btn btn-warning" onclick="manualCleanup()">
+                            <i class="fas fa-broom"></i> Clean Expired
+                        </button>
+                        <button class="btn btn-outline" onclick="testHotelLogin()" style="font-size: 12px;">
+                            🐛 Test Login
+                        </button>
+                    </div>
+                    
+                    <!-- Stats Dashboard -->
+                    <div id="menuStats" class="stats-dashboard">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalItems">-</div>
+                            <div class="stat-label">Total Menu Items</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="activeItems">-</div>
+                            <div class="stat-label">Active Items</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="expiredItems">-</div>
+                            <div class="stat-label">Expired Items</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="recentReviews">-</div>
+                            <div class="stat-label">Reviews (7 days)</div>
+                        </div>
                     </div>
                     
                     <div class="dashboard-tabs">
@@ -483,12 +522,12 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="foodPrice">Price (₹)</label>
-                            <input type="number" id="foodPrice" name="price" placeholder="80" min="1" required>
+                            <label for="foodPrice">Price (৳)</label>
+                            <input type="number" id="foodPrice" name="price" placeholder="{{ sample_food_price }}" min="1" required>
                         </div>
                         <div class="form-group">
                             <label for="foodQuantity">Quantity</label>
-                            <input type="number" id="foodQuantity" name="quantity" placeholder="5" min="1" required>
+                            <input type="number" id="foodQuantity" name="quantity" placeholder="{{ sample_food_quantity }}" min="1" required>
                         </div>
                     </div>
                     <div class="form-row">
@@ -513,11 +552,11 @@
                     </div>
                     <div class="form-group">
                         <label for="foodLocation">Location</label>
-                        <input type="text" id="foodLocation" name="location" placeholder="Hostel A, Room 204" required>
+                        <input type="text" id="foodLocation" name="location" placeholder="Trishal Boys Hostel A, Room 204" required>
                     </div>
                     <div class="form-group">
                         <label for="contactInfo">Contact Information</label>
-                        <input type="text" id="contactInfo" name="contact_info" placeholder="WhatsApp: 9876543210" required>
+                        <input type="text" id="contactInfo" name="contact_info" placeholder="WhatsApp: +880-1712345678" required>
                     </div>
                     <div class="form-group">
                         <label for="foodImageUrl">Image URL (optional)</label>
@@ -549,7 +588,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="itemPrice">Price (₹)</label>
-                            <input type="number" id="itemPrice" name="price" placeholder="199" min="1" required>
+                            <input type="text" id="itemPrice" name="price" placeholder="{{ sample_menu_price }}" min="1" required>
                         </div>
                         <div class="form-group">
                             <label for="itemCategory">Category</label>
@@ -716,12 +755,13 @@
                 </div>
                 <div class="footer-section">
                     <h4>Contact</h4>
-                    <p>Email: info@mealmate.com</p>
-                    <p>Phone: +91 12345 67890</p>
+                    <p>Email: info@mealmate.bd</p>
+                    <p>Phone: +880 1712-345678</p>
+                    <p>Location: Trishal Campus, Mymensingh, Dhaka</p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2023 MealMate. All rights reserved.</p>
+                <p>&copy; 2025 MealMate - Trishal Campus. All rights reserved.</p>
             </div>
         </div>
     </footer>

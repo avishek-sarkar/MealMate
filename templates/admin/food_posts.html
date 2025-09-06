@@ -1,0 +1,144 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Manage Food Posts - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-utensils"></i> Manage Food Posts
+        </h1>
+    </div>
+</div>
+
+<!-- Food Posts Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-utensils text-success"></i> All Student Food Posts</h5>
+            </div>
+            <div class="card-body">
+                {% if food_posts %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Food Details</th>
+                                <th>Price & Quantity</th>
+                                <th>Location</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for post in food_posts %}
+                            <tr id="post-{{ post.id }}">
+                                <td>
+                                    <strong>{{ post.user.username }}</strong><br>
+                                    <small class="text-muted">{{ post.user.email }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ post.title }}</strong><br>
+                                    <span class="text-muted">{{ post.description[:50] }}...</span><br>
+                                    <span class="badge bg-{% if post.food_type == 'veg' %}success{% else %}danger{% endif %}">
+                                        {{ post.food_type.upper() }}
+                                    </span>
+                                    <span class="badge bg-info">{{ post.cuisine }}</span>
+                                </td>
+                                <td>
+                                    <strong class="text-success">৳{{ post.price }}</strong><br>
+                                    <small class="text-muted">Qty: {{ post.quantity }}</small>
+                                </td>
+                                <td>
+                                    <small>{{ post.location }}</small><br>
+                                    <small class="text-muted">{{ post.contact_info }}</small>
+                                </td>
+                                <td>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if post.expires_at > moment.utcnow() %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-clock"></i> Expired
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" 
+                                            onclick="deleteFoodPost({{ post.id }}, '{{ post.title }}')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No food posts found</h5>
+                    <p class="text-muted">No student food posts have been created yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Message Alert -->
+<div id="messageAlert" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+    <span id="messageText"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function deleteFoodPost(postId, title) {
+    if (!confirm(`Are you sure you want to delete the food post "${title}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/delete-food-post/${postId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showMessage(result.message, 'success');
+            // Remove row from table
+            document.getElementById(`post-${postId}`).remove();
+        } else {
+            showMessage(result.message, 'danger');
+        }
+    } catch (error) {
+        showMessage('Failed to delete food post. Please try again.', 'danger');
+    }
+}
+
+function showMessage(message, type) {
+    const alert = document.getElementById('messageAlert');
+    const messageText = document.getElementById('messageText');
+    
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    messageText.textContent = message;
+    alert.classList.remove('d-none');
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        alert.classList.add('d-none');
+    }, 5000);
+}
+</script>
+{% endblock %}

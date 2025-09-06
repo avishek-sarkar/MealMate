@@ -1,16 +1,24 @@
-# MealMate - Professional Food Community Platform
+# MealMate - Trishal Campus Food Hub
 
-A modern Flask-based web application for food enthusiasts to share reviews, discover restaurants, and connect with homemade food sellers.
+A modern Flask-based web application for students in Trishal Campus, Mymensingh, Dhaka to share food reviews, discover local restaurants, and connect with homemade food sellers.
 
 ## 🚀 Features
 
-- **Food Reviews & Posts**: Share experiences with restaurants and dishes
-- **Hotel Discovery**: Browse and discover local restaurants
-- **Homemade Food Marketplace**: Connect with local home cooks
-- **User Authentication**: Secure login and registration system
-- **Real-time Content**: 24-hour content expiry system
-- **Responsive Design**: Mobile-friendly interface
-- **Professional UI**: Clean, modern design with smooth animations
+- **Food Reviews & Posts**: Share experiences with local restaurants and dishes
+- **Hotel Discovery**: Browse and discover restaurants near Trishal Campus
+- **Homemade Food Marketplace**: Connect with fellow students selling homemade food
+- **Hotel Owner Dashboard**: Restaurant owners can post menu items with automatic 24-hour expiry
+- **User Authentication**: Secure login system for students and hotel owners
+- **Real-time Content**: 24-hour content expiry system for fresh listings
+- **Responsive Design**: Mobile-friendly interface optimized for campus use
+- **Bangladeshi Context**: Prices in Taka (৳), local cuisine, and campus-specific features
+
+## 🏫 Campus Information
+
+- **Location**: Trishal Campus, Mymensingh, Dhaka, Bangladesh
+- **Currency**: Bangladeshi Taka (৳)
+- **Target Users**: Students and local restaurant owners
+- **Local Cuisine**: Traditional Bangladeshi dishes including biryani, fish curry, pitha, and more
 
 ## �️ Technology Stack
 

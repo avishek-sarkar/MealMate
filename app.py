@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import logging
 
 # Import database models
-from models import db, User, HotelOwner, MenuItem, Review, StudentFoodPost, cleanup_expired_content
+from models import db, User, HotelOwner, MenuItem, Review, StudentFoodPost, Admin, cleanup_expired_content
 
 def create_app():
     """Application factory pattern"""
@@ -50,6 +50,10 @@ def create_app():
         """Check if hotel owner is logged in"""
         return 'hotel_owner_id' in session
     
+    def require_admin_login():
+        """Check if admin is logged in"""
+        return 'admin_id' in session
+    
     def get_current_user():
         """Get current logged in user"""
         if 'user_id' in session:
@@ -60,6 +64,12 @@ def create_app():
         """Get current logged in hotel owner"""
         if 'hotel_owner_id' in session:
             return HotelOwner.query.get(session['hotel_owner_id'])
+        return None
+    
+    def get_current_admin():
+        """Get current logged in admin"""
+        if 'admin_id' in session:
+            return Admin.query.get(session['admin_id'])
         return None
 
     # ==================================================================================
@@ -134,6 +144,22 @@ def create_app():
             hotel_data['menu_items'] = [item.to_dict() for item in available_menu_items if item.hotel_owner_id == hotel.id]
             hotels_data.append(hotel_data)
         
+        # Get sample data for dynamic placeholders
+        sample_food_price = 80
+        sample_food_quantity = 5
+        sample_menu_price = 150
+        
+        # Get recent prices for realistic examples
+        recent_posts = StudentFoodPost.query.filter(StudentFoodPost.expires_at > datetime.utcnow()).order_by(StudentFoodPost.created_at.desc()).limit(3).all()
+        recent_menu_items = MenuItem.query.filter(MenuItem.expires_at > datetime.utcnow()).order_by(MenuItem.created_at.desc()).limit(3).all()
+        
+        if recent_posts:
+            sample_food_price = recent_posts[0].price
+            sample_food_quantity = recent_posts[0].quantity
+        
+        if recent_menu_items:
+            sample_menu_price = recent_menu_items[0].price
+
         return render_template('index.html', 
                              posts=all_posts,
                              hotels=hotels_data,
@@ -152,6 +178,9 @@ def create_app():
                                  'servingSize': post.quantity,
                                  'expiresIn': calculate_time_remaining(post.created_at)
                              } for post in recent_food_posts],
+                             sample_food_price=sample_food_price,
+                             sample_food_quantity=sample_food_quantity,
+                             sample_menu_price=sample_menu_price,
                              current_user=get_current_user() or get_current_hotel_owner())
 
     # ==================================================================================
@@ -188,20 +217,18 @@ def create_app():
             user = User(
                 username=data['username'],
                 reg_number=data['reg_number'],
-                email=data['email']
+                email=data['email'],
+                is_approved=False  # Requires admin approval
             )
             user.set_password(data['password'])
             
             db.session.add(user)
             db.session.commit()
             
-            # Log in the user
-            session['user_id'] = user.id
-            session['user_type'] = 'student'
-            
+            # Note: Don't automatically log in - user needs approval first
             return jsonify({
                 'success': True, 
-                'message': 'Registration successful',
+                'message': 'Registration successful. Please wait for admin approval before logging in.',
                 'user': user.to_dict()
             })
             
@@ -244,7 +271,8 @@ def create_app():
                 hotel_address=data['hotel_address'],
                 contact_number=data['contact_number'],
                 license_number=data['license_number'],
-                is_verified=False  # Requires manual verification
+                is_verified=False,  # Requires manual verification
+                is_approved=False   # Requires admin approval
             )
             hotel_owner.set_password(data['password'])
             
@@ -286,10 +314,14 @@ def create_app():
             if user_type == 'hotel':
                 # Hotel owner login
                 hotel_owner = HotelOwner.query.filter(
-                    (HotelOwner.username == username) | (HotelOwner.email == username)
+                    (HotelOwner.username == username) | (HotelOwner.email == username),
+                    HotelOwner.is_active == True
                 ).first()
                 
                 if hotel_owner and hotel_owner.check_password(password):
+                    if not hotel_owner.is_approved:
+                        return jsonify({'success': False, 'message': 'Your account is pending admin approval'}), 401
+                    
                     session['hotel_owner_id'] = hotel_owner.id
                     session['user_type'] = 'hotel'
                     
@@ -305,10 +337,14 @@ def create_app():
             else:
                 # Student login
                 user = User.query.filter(
-                    (User.username == username) | (User.email == username)
+                    (User.username == username) | (User.email == username),
+                    User.is_active == True
                 ).first()
                 
                 if user and user.check_password(password):
+                    if not user.is_approved:
+                        return jsonify({'success': False, 'message': 'Your account is pending admin approval'}), 401
+                    
                     session['user_id'] = user.id
                     session['user_type'] = 'student'
                     
@@ -336,6 +372,68 @@ def create_app():
         
         # For regular browser requests, redirect to home page
         return redirect(url_for('index'))
+
+    # ==================================================================================
+    # ADMIN AUTHENTICATION ROUTES
+    # ==================================================================================
+    
+    @app.route('/admin/login', methods=['GET', 'POST'])
+    def admin_login():
+        """Admin login"""
+        if request.method == 'GET':
+            return render_template('admin/login.html')
+        
+        try:
+            # Handle both JSON and form data
+            if request.is_json:
+                data = request.get_json()
+            else:
+                data = request.form.to_dict()
+            
+            username = data.get('username')
+            password = data.get('password')
+            
+            if not username or not password:
+                return jsonify({'success': False, 'message': 'Username and password are required'}), 400
+            
+            # Find admin by username
+            admin = Admin.query.filter_by(username=username, is_active=True).first()
+            
+            if admin and admin.check_password(password):
+                session['admin_id'] = admin.id
+                
+                app.logger.info(f"Admin login successful for: {username}")
+                
+                # For AJAX requests, return JSON
+                if request.is_json or request.headers.get('Content-Type') == 'application/json':
+                    return jsonify({
+                        'success': True, 
+                        'message': 'Login successful',
+                        'redirect': '/admin/dashboard'
+                    })
+                
+                # For regular browser requests, redirect to admin dashboard
+                return redirect(url_for('admin_dashboard'))
+            else:
+                app.logger.warning(f"Failed admin login attempt for: {username}")
+                return jsonify({'success': False, 'message': 'Invalid username or password'}), 401
+        
+        except Exception as e:
+            app.logger.error(f"Admin login error: {str(e)}")
+            return jsonify({'success': False, 'message': 'Login failed'}), 500
+    
+    @app.route('/admin/logout', methods=['GET', 'POST'])
+    def admin_logout():
+        """Admin logout"""
+        if 'admin_id' in session:
+            del session['admin_id']
+        
+        # For AJAX requests, return JSON
+        if request.is_json or request.headers.get('Content-Type') == 'application/json':
+            return jsonify({'success': True, 'message': 'Logged out successfully'})
+        
+        # For regular browser requests, redirect to admin login
+        return redirect(url_for('admin_login'))
 
     # ==================================================================================
     # POST-LOGIN FEATURES ROUTES
@@ -521,6 +619,123 @@ def create_app():
             app.logger.error(f"Menu item creation error: {str(e)}")
             return jsonify({'success': False, 'message': 'Failed to add menu item'}), 500
     
+    @app.route('/delete-menu-item/<int:item_id>', methods=['DELETE'])
+    def delete_menu_item(item_id):
+        """Delete menu item (Hotel owners only)"""
+        if not require_hotel_login():
+            return jsonify({'success': False, 'message': 'Please login as hotel owner first'}), 401
+        
+        try:
+            # Find the menu item
+            menu_item = MenuItem.query.filter_by(
+                id=item_id, 
+                hotel_owner_id=session['hotel_owner_id']
+            ).first()
+            
+            if not menu_item:
+                return jsonify({'success': False, 'message': 'Menu item not found or not authorized'}), 404
+            
+            # Delete the menu item
+            db.session.delete(menu_item)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Menu item deleted successfully!'
+            })
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Menu item deletion error: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to delete menu item'}), 500
+
+    @app.route('/toggle-menu-availability/<int:item_id>', methods=['PUT'])
+    def toggle_menu_availability(item_id):
+        """Toggle menu item availability (Hotel owners only)"""
+        if not require_hotel_login():
+            return jsonify({'success': False, 'message': 'Please login as hotel owner first'}), 401
+        
+        try:
+            # Find the menu item
+            menu_item = MenuItem.query.filter_by(
+                id=item_id, 
+                hotel_owner_id=session['hotel_owner_id']
+            ).first()
+            
+            if not menu_item:
+                return jsonify({'success': False, 'message': 'Menu item not found or not authorized'}), 404
+            
+            # Toggle availability
+            menu_item.is_available = not menu_item.is_available
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': f'Menu item {"enabled" if menu_item.is_available else "disabled"} successfully!',
+                'is_available': menu_item.is_available
+            })
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Menu item toggle error: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to update menu item'}), 500
+
+    @app.route('/cleanup-expired', methods=['POST'])
+    def manual_cleanup():
+        """Manually trigger cleanup of expired content (Admin/Hotel owners)"""
+        if not (require_hotel_login() or require_login()):
+            return jsonify({'success': False, 'message': 'Authentication required'}), 401
+        
+        try:
+            deleted_count = cleanup_expired_content()
+            return jsonify({
+                'success': True,
+                'message': f'Cleanup completed! Removed {deleted_count} expired items.',
+                'deleted_count': deleted_count
+            })
+        except Exception as e:
+            app.logger.error(f"Manual cleanup error: {str(e)}")
+            return jsonify({'success': False, 'message': 'Cleanup failed'}), 500
+
+    @app.route('/menu-stats', methods=['GET'])
+    def menu_stats():
+        """Get menu statistics for hotel owner"""
+        if not require_hotel_login():
+            return jsonify({'success': False, 'message': 'Please login as hotel owner first'}), 401
+        
+        try:
+            hotel_id = session['hotel_owner_id']
+            
+            # Get menu item counts
+            total_items = MenuItem.query.filter_by(hotel_owner_id=hotel_id).count()
+            active_items = MenuItem.query.filter_by(
+                hotel_owner_id=hotel_id, 
+                is_available=True
+            ).filter(MenuItem.expires_at > datetime.utcnow()).count()
+            expired_items = MenuItem.query.filter_by(
+                hotel_owner_id=hotel_id
+            ).filter(MenuItem.expires_at <= datetime.utcnow()).count()
+            
+            # Get recent reviews
+            recent_reviews = Review.query.join(MenuItem).filter(
+                MenuItem.hotel_owner_id == hotel_id,
+                Review.created_at >= datetime.utcnow() - timedelta(days=7)
+            ).count()
+            
+            return jsonify({
+                'success': True,
+                'stats': {
+                    'total_items': total_items,
+                    'active_items': active_items,
+                    'expired_items': expired_items,
+                    'recent_reviews': recent_reviews
+                }
+            })
+            
+        except Exception as e:
+            app.logger.error(f"Menu stats error: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to fetch stats'}), 500
+
     @app.route('/update-menu-item/<int:item_id>', methods=['PUT'])
     def update_menu_item(item_id):
         """Update menu item (Hotel owners only)"""
@@ -868,6 +1083,34 @@ def create_app():
         
         return jsonify({'success': False, 'message': 'Not logged in'}), 401
 
+    @app.route('/debug-session')
+    def debug_session():
+        """Debug endpoint to check session status"""
+        return jsonify({
+            'session': dict(session),
+            'has_user_id': 'user_id' in session,
+            'has_hotel_owner_id': 'hotel_owner_id' in session,
+            'user_type': session.get('user_type'),
+            'require_login': require_login(),
+            'require_hotel_login': require_hotel_login()
+        })
+
+    @app.route('/test-hotel-login')
+    def test_hotel_login():
+        """Test endpoint to verify hotel login works"""
+        if require_hotel_login():
+            hotel = HotelOwner.query.get(session['hotel_owner_id'])
+            return jsonify({
+                'success': True,
+                'message': 'Hotel owner is logged in',
+                'hotel': hotel.to_dict()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Hotel owner not logged in'
+            }), 401
+
     # ==================================================================================
     # LEGACY API ROUTES (for backward compatibility)
     # ==================================================================================
@@ -990,6 +1233,220 @@ def create_app():
         return jsonify(legacy_posts)
 
     # ==================================================================================
+    # ADMIN PANEL ROUTES
+    # ==================================================================================
+    
+    @app.route('/admin/dashboard')
+    def admin_dashboard():
+        """Admin dashboard"""
+        if not require_admin_login():
+            return redirect(url_for('admin_login'))
+        
+        # Get statistics
+        pending_users = User.query.filter_by(is_approved=False, is_active=True).count()
+        pending_hotels = HotelOwner.query.filter_by(is_approved=False, is_active=True).count()
+        total_users = User.query.filter_by(is_active=True).count()
+        total_hotels = HotelOwner.query.filter_by(is_active=True).count()
+        total_reviews = Review.query.count()
+        total_food_posts = StudentFoodPost.query.count()
+        
+        stats = {
+            'pending_users': pending_users,
+            'pending_hotels': pending_hotels,
+            'total_users': total_users,
+            'total_hotels': total_hotels,
+            'total_reviews': total_reviews,
+            'total_food_posts': total_food_posts
+        }
+        
+        return render_template('admin/dashboard.html', stats=stats, current_admin=get_current_admin())
+    
+    @app.route('/admin/users')
+    def admin_users():
+        """Manage users"""
+        if not require_admin_login():
+            return redirect(url_for('admin_login'))
+        
+        status = request.args.get('status', 'all')
+        
+        if status == 'pending':
+            users = User.query.filter_by(is_approved=False, is_active=True).order_by(User.created_at.desc()).all()
+        elif status == 'approved':
+            users = User.query.filter_by(is_approved=True, is_active=True).order_by(User.created_at.desc()).all()
+        else:
+            users = User.query.filter_by(is_active=True).order_by(User.created_at.desc()).all()
+        
+        return render_template('admin/users.html', users=users, status=status, current_admin=get_current_admin())
+    
+    @app.route('/admin/hotels')
+    def admin_hotels():
+        """Manage hotel owners"""
+        if not require_admin_login():
+            return redirect(url_for('admin_login'))
+        
+        status = request.args.get('status', 'all')
+        
+        if status == 'pending':
+            hotels = HotelOwner.query.filter_by(is_approved=False, is_active=True).order_by(HotelOwner.created_at.desc()).all()
+        elif status == 'approved':
+            hotels = HotelOwner.query.filter_by(is_approved=True, is_active=True).order_by(HotelOwner.created_at.desc()).all()
+        else:
+            hotels = HotelOwner.query.filter_by(is_active=True).order_by(HotelOwner.created_at.desc()).all()
+        
+        return render_template('admin/hotels.html', hotels=hotels, status=status, current_admin=get_current_admin())
+    
+    @app.route('/admin/approve-user/<int:user_id>', methods=['POST'])
+    def approve_user(user_id):
+        """Approve a user registration"""
+        if not require_admin_login():
+            return jsonify({'success': False, 'message': 'Admin login required'}), 401
+        
+        try:
+            user = User.query.get_or_404(user_id)
+            admin = get_current_admin()
+            
+            user.is_approved = True
+            user.approved_by = admin.id
+            user.approved_at = datetime.utcnow()
+            
+            db.session.commit()
+            
+            app.logger.info(f"User {user.username} approved by admin {admin.username}")
+            return jsonify({'success': True, 'message': f'User {user.username} approved successfully'})
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error approving user: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to approve user'}), 500
+    
+    @app.route('/admin/approve-hotel/<int:hotel_id>', methods=['POST'])
+    def approve_hotel(hotel_id):
+        """Approve a hotel owner registration"""
+        if not require_admin_login():
+            return jsonify({'success': False, 'message': 'Admin login required'}), 401
+        
+        try:
+            hotel = HotelOwner.query.get_or_404(hotel_id)
+            admin = get_current_admin()
+            
+            hotel.is_approved = True
+            hotel.is_verified = True  # Also verify the hotel
+            hotel.approved_by = admin.id
+            hotel.approved_at = datetime.utcnow()
+            
+            db.session.commit()
+            
+            app.logger.info(f"Hotel {hotel.hotel_name} approved by admin {admin.username}")
+            return jsonify({'success': True, 'message': f'Hotel {hotel.hotel_name} approved successfully'})
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error approving hotel: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to approve hotel'}), 500
+    
+    @app.route('/admin/delete-user/<int:user_id>', methods=['DELETE'])
+    def delete_user(user_id):
+        """Delete a user (soft delete)"""
+        if not require_admin_login():
+            return jsonify({'success': False, 'message': 'Admin login required'}), 401
+        
+        try:
+            user = User.query.get_or_404(user_id)
+            admin = get_current_admin()
+            
+            user.is_active = False
+            db.session.commit()
+            
+            app.logger.info(f"User {user.username} deleted by admin {admin.username}")
+            return jsonify({'success': True, 'message': f'User {user.username} deleted successfully'})
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error deleting user: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to delete user'}), 500
+    
+    @app.route('/admin/delete-hotel/<int:hotel_id>', methods=['DELETE'])
+    def delete_hotel(hotel_id):
+        """Delete a hotel owner (soft delete)"""
+        if not require_admin_login():
+            return jsonify({'success': False, 'message': 'Admin login required'}), 401
+        
+        try:
+            hotel = HotelOwner.query.get_or_404(hotel_id)
+            admin = get_current_admin()
+            
+            hotel.is_active = False
+            db.session.commit()
+            
+            app.logger.info(f"Hotel {hotel.hotel_name} deleted by admin {admin.username}")
+            return jsonify({'success': True, 'message': f'Hotel {hotel.hotel_name} deleted successfully'})
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error deleting hotel: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to delete hotel'}), 500
+    
+    @app.route('/admin/reviews')
+    def admin_reviews():
+        """Manage reviews"""
+        if not require_admin_login():
+            return redirect(url_for('admin_login'))
+        
+        reviews = Review.query.order_by(Review.created_at.desc()).all()
+        return render_template('admin/reviews.html', reviews=reviews, current_admin=get_current_admin())
+    
+    @app.route('/admin/delete-review/<int:review_id>', methods=['DELETE'])
+    def delete_review(review_id):
+        """Delete a review"""
+        if not require_admin_login():
+            return jsonify({'success': False, 'message': 'Admin login required'}), 401
+        
+        try:
+            review = Review.query.get_or_404(review_id)
+            admin = get_current_admin()
+            
+            db.session.delete(review)
+            db.session.commit()
+            
+            app.logger.info(f"Review {review_id} deleted by admin {admin.username}")
+            return jsonify({'success': True, 'message': 'Review deleted successfully'})
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error deleting review: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to delete review'}), 500
+    
+    @app.route('/admin/food-posts')
+    def admin_food_posts():
+        """Manage student food posts"""
+        if not require_admin_login():
+            return redirect(url_for('admin_login'))
+        
+        food_posts = StudentFoodPost.query.order_by(StudentFoodPost.created_at.desc()).all()
+        return render_template('admin/food_posts.html', food_posts=food_posts, current_admin=get_current_admin())
+    
+    @app.route('/admin/delete-food-post/<int:post_id>', methods=['DELETE'])
+    def delete_food_post(post_id):
+        """Delete a food post"""
+        if not require_admin_login():
+            return jsonify({'success': False, 'message': 'Admin login required'}), 401
+        
+        try:
+            post = StudentFoodPost.query.get_or_404(post_id)
+            admin = get_current_admin()
+            
+            db.session.delete(post)
+            db.session.commit()
+            
+            app.logger.info(f"Food post {post_id} deleted by admin {admin.username}")
+            return jsonify({'success': True, 'message': 'Food post deleted successfully'})
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error deleting food post: {str(e)}")
+            return jsonify({'success': False, 'message': 'Failed to delete food post'}), 500
+
+    # ==================================================================================
     # UTILITY FUNCTIONS (Legacy support)
     # ==================================================================================
     
@@ -1041,3 +1498,33 @@ def create_app():
 
 # Create the app instance
 app = create_app()
+
+# Background cleanup scheduler
+def run_cleanup_scheduler():
+    """Run periodic cleanup of expired content"""
+    import time
+    import threading
+    
+    def cleanup_worker():
+        while True:
+            try:
+                with app.app_context():
+                    deleted_count = cleanup_expired_content()
+                    if deleted_count > 0:
+                        app.logger.info(f"Cleaned up {deleted_count} expired items")
+                # Run cleanup every 30 minutes
+                time.sleep(1800)
+            except Exception as e:
+                app.logger.error(f"Cleanup error: {str(e)}")
+                time.sleep(300)  # Wait 5 minutes before retrying
+    
+    # Start cleanup thread
+    cleanup_thread = threading.Thread(target=cleanup_worker, daemon=True)
+    cleanup_thread.start()
+    app.logger.info("Started background cleanup scheduler")
+
+# Start the cleanup scheduler
+run_cleanup_scheduler()
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)

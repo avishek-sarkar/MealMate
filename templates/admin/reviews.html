@@ -1,0 +1,146 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Manage Reviews - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-star"></i> Manage Reviews
+        </h1>
+    </div>
+</div>
+
+<!-- Reviews Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-star text-warning"></i> All Reviews</h5>
+            </div>
+            <div class="card-body">
+                {% if reviews %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Restaurant & Item</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for review in reviews %}
+                            <tr id="review-{{ review.id }}">
+                                <td>
+                                    <strong>{{ review.user.username }}</strong><br>
+                                    <small class="text-muted">{{ review.user.email }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ review.menu_item.hotel_owner.hotel_name }}</strong><br>
+                                    <span class="text-muted">{{ review.menu_item.item_name }}</span><br>
+                                    <span class="badge bg-secondary">৳{{ review.menu_item.price }}</span>
+                                </td>
+                                <td>
+                                    <div class="rating">
+                                        {% for i in range(1, 6) %}
+                                            {% if i <= review.rating %}
+                                                <i class="fas fa-star text-warning"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-muted"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <br>
+                                        <small class="text-muted">({{ review.rating }}/5)</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="comment-preview">
+                                        {% if review.comment|length > 100 %}
+                                            {{ review.comment[:100] }}...
+                                        {% else %}
+                                            {{ review.comment }}
+                                        {% endif %}
+                                        {% if review.image_url %}
+                                            <br><small class="text-muted"><i class="fas fa-image"></i> Has image</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>{{ review.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" 
+                                            onclick="deleteReview({{ review.id }}, '{{ review.user.username }}')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No reviews found</h5>
+                    <p class="text-muted">No reviews have been posted yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Message Alert -->
+<div id="messageAlert" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+    <span id="messageText"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function deleteReview(reviewId, username) {
+    if (!confirm(`Are you sure you want to delete this review by "${username}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/delete-review/${reviewId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showMessage(result.message, 'success');
+            // Remove row from table
+            document.getElementById(`review-${reviewId}`).remove();
+        } else {
+            showMessage(result.message, 'danger');
+        }
+    } catch (error) {
+        showMessage('Failed to delete review. Please try again.', 'danger');
+    }
+}
+
+function showMessage(message, type) {
+    const alert = document.getElementById('messageAlert');
+    const messageText = document.getElementById('messageText');
+    
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    messageText.textContent = message;
+    alert.classList.remove('d-none');
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        alert.classList.add('d-none');
+    }, 5000);
+}
+</script>
+{% endblock %}

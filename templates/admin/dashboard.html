@@ -1,0 +1,178 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard - MealMate{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+        </h1>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-4">
+                        <i class="fas fa-clock fa-3x"></i>
+                    </div>
+                    <div class="col-8 text-end">
+                        <h3>{{ stats.pending_users }}</h3>
+                        <p class="mb-0">Pending Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('admin_users', status='pending') }}" class="text-white text-decoration-none">
+                    View Details <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-4">
+                        <i class="fas fa-building fa-3x"></i>
+                    </div>
+                    <div class="col-8 text-end">
+                        <h3>{{ stats.pending_hotels }}</h3>
+                        <p class="mb-0">Pending Hotels</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('admin_hotels', status='pending') }}" class="text-white text-decoration-none">
+                    View Details <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-4">
+                        <i class="fas fa-users fa-3x"></i>
+                    </div>
+                    <div class="col-8 text-end">
+                        <h3>{{ stats.total_users }}</h3>
+                        <p class="mb-0">Total Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('admin_users') }}" class="text-white text-decoration-none">
+                    View Details <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-4">
+                        <i class="fas fa-store fa-3x"></i>
+                    </div>
+                    <div class="col-8 text-end">
+                        <h3>{{ stats.total_hotels }}</h3>
+                        <p class="mb-0">Total Hotels</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('admin_hotels') }}" class="text-white text-decoration-none">
+                    View Details <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Statistics -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-4">
+                        <i class="fas fa-star fa-3x text-warning"></i>
+                    </div>
+                    <div class="col-8 text-end">
+                        <h3>{{ stats.total_reviews }}</h3>
+                        <p class="mb-0">Total Reviews</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('admin_reviews') }}" class="text-decoration-none">
+                    Manage Reviews <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-4">
+                        <i class="fas fa-utensils fa-3x text-success"></i>
+                    </div>
+                    <div class="col-8 text-end">
+                        <h3>{{ stats.total_food_posts }}</h3>
+                        <p class="mb-0">Food Posts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('admin_food_posts') }}" class="text-decoration-none">
+                    Manage Posts <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('admin_users', status='pending') }}" class="btn btn-warning btn-lg w-100">
+                            <i class="fas fa-user-check"></i><br>
+                            Approve Users
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('admin_hotels', status='pending') }}" class="btn btn-info btn-lg w-100">
+                            <i class="fas fa-building"></i><br>
+                            Approve Hotels
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('admin_reviews') }}" class="btn btn-secondary btn-lg w-100">
+                            <i class="fas fa-star"></i><br>
+                            Moderate Reviews
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
