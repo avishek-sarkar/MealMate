@@ -138,19 +138,35 @@ MealMate/
 
 After running `init_db.py`, you can use these credentials:
 
-### Admin
-- **Username**: admin
-- **Password**: admin123
+### 👨‍💼 Admin Account
+- **Username**: `admin`
+- **Password**: `admin123`
+- **Role**: Full system administration access
 
-### Students
-- **Username**: avishek_sarkar / tamim5 / mridula
-- **Password**: password123
+### 🎓 Student Accounts
+- **Usernames**: `avishek_sarkar` / `tamim5` / `mridula`
+- **Password**: `password123` (same for all students)
+- **Role**: Create reviews, post homemade food, interact with posts
 
-### Hotel Owners
-- **Username**: hotel_sareng / mastercafe / chondrobindu  
-- **Password**: hotel123
+### 🏨 Hotel Owner Accounts
+- **Usernames**: `hotel_sareng` / `mastercafe` / `chondrobindu`
+- **Password**: `hotel123` (same for all hotel owners)
+- **Role**: Manage restaurant menu items and view analytics
 
-> **Note**: Most users and hotels require admin approval before they can fully use the system.
+> **📝 Quick Reference:**
+> - **Students**: Any student username + `password123`
+> - **Hotel Owners**: Any hotel username + `hotel123`
+> - **Admin**: `admin` + `admin123`
+
+> **⚠️ Note**: Most users and hotels require admin approval before they can fully use the system.
+
+### 📊 Quick Login Reference Table
+
+| User Type | Username Options | Password | Role Description |
+|-----------|------------------|----------|------------------|
+| **Admin** | `admin` | `admin123` | Full system administration |
+| **Students** | `avishek_sarkar`, `tamim5`, `mridula` | `password123` | Post reviews & homemade food |
+| **Hotel Owners** | `hotel_sareng`, `mastercafe`, `chondrobindu` | `hotel123` | Manage restaurant menus |
 
 ## 🌟 Key Features Detailed
 
