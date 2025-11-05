@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🍜 MealMate - Trishal Campus Food Hub 🍔
+# 🍜 MealMate - Campus Food Hub 🍔
 
 <p align="center">
   <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=28&duration=3000&pause=1000&color=FF6B35&center=true&vCenter=true&width=600&lines=Connecting+Food+Lovers+%F0%9F%8D%95;Real-time+Reviews+%E2%9C%A8;Campus+Food+Community+%F0%9F%8E%93" alt="Typing SVG" />
@@ -13,7 +13,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 <p align="center">
-  <strong>A modern Flask-based web application with real-time notifications for students in Trishal Campus, Mymensingh to share food reviews, discover local restaurants, and connect with homemade food sellers.</strong>
+  <strong>A modern Flask-based web application with real-time notifications for students to share food reviews, discover local restaurants, and connect with homemade food sellers.</strong>
 </p>
 
 <p align="center">
@@ -45,7 +45,7 @@
 
 ### 🎯 Core Features
 - **🍽️ Food Reviews & Posts**: Share experiences with local restaurants and dishes
-- **🏨 Hotel Discovery**: Browse and discover restaurants near Trishal Campus  
+- **🏨 Hotel Discovery**: Browse and discover restaurants near campus  
 - **🍱 Homemade Food Marketplace**: Connect with fellow students selling homemade food
 - **📊 Hotel Owner Dashboard**: Restaurant owners can manage menu items and track sales
 - **🔐 User Authentication**: Secure login system for students and hotel owners
@@ -74,7 +74,7 @@
 
 | 📍 Location | 💰 Currency | 👥 Target Users | 🍛 Cuisine |
 |:---:|:---:|:---:|:---:|
-| Trishal Campus | Bangladeshi Taka (৳) | Students & Owners | Traditional Bangladeshi |
+| Campus | Bangladeshi Taka (৳) | Students & Owners | Traditional Bangladeshi |
 | Mymensingh, Bangladesh | - | Campus Community | Biryani, Fish Curry, etc. |
 
 </div>
@@ -492,10 +492,10 @@ Need help? We're here for you!
   <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer" alt="Footer" />
 </p>
 
-*Made with ❤️ for Trishal Campus students by [Avishek Sarkar](https://github.com/avishek-sarkar)*
+*Made with ❤️ by [Avishek Sarkar](https://github.com/avishek-sarkar)*
 
 <p align="center">
-  <a href="#-mealmate---trishal-campus-food-hub-">⬆️ Back to Top</a>
+  <a href="#-mealmate---campus-food-hub-">⬆️ Back to Top</a>
 </p>
 
 </div>
