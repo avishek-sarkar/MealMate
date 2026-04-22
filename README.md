@@ -3,7 +3,7 @@
 # MealMate
 
 <p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=26&duration=2800&pause=1000&color=FF6B35&center=true&vCenter=true&width=620&lines=Connecting+Food+Lovers;Real-time+Campus+Food+Reviews;Discover+Posts%2C+Hotels%2C+and+Homemade+Food" alt="Typing SVG" />
+   <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=24&duration=2800&pause=1000&color=FF6B35&center=true&vCenter=true&width=760&height=56&lines=Connecting+Food+Lovers;Real-time+Campus+Food+Reviews;Discover+Posts%2C+Hotels%2C+and+Homemade+Food" alt="Typing SVG" />
 </p>
 
 [![Flask](https://img.shields.io/badge/Flask-3.1.2-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
@@ -299,22 +299,11 @@ DELETE /admin/delete-food-post/<id>
 
 ## Future Enhancements
 
-| Planned Feature | Description | Status |
-|:---|:---|:---:|
-| Mobile app | React Native companion app | Planned |
-| Payment integration | bKash/Nagad support | Planned |
-| AI recommendations | Personalized food suggestions | Planned |
-| Delivery tracking | Campus delivery flow | Planned |
-| Rating analytics | Review insights and trends | Planned |
-| Multi-language | Bengali language support | Planned |
-
-| Technical Improvement | Description | Priority |
-|:---|:---|:---:|
-| PostgreSQL | Production database migration | High |
-| Redis | Caching and session storage | Medium |
-| Docker | Containerization | High |
-| CI/CD | Automated build and deploy | Medium |
-| Monitoring | Application performance tracking | Low |
+- Mobile app (React Native) for students and hotel owners.
+- Payment integration (bKash/Nagad) for direct transactions.
+- AI-powered recommendations and smarter food discovery.
+- Delivery workflow and order tracking for campus users.
+- Technical upgrades: PostgreSQL, Docker, CI/CD, Redis caching, and monitoring.
 
 ---
 
