@@ -2,12 +2,10 @@
 Database models for MealMate Campus Food Hub
 """
 from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
-bcrypt = Bcrypt()
 
 class Admin(db.Model):
     """Admin user model"""
@@ -311,23 +309,28 @@ class StudentFoodPost(db.Model):
 def cleanup_expired_content():
     """Remove expired reviews and food posts"""
     from datetime import datetime
+    deleted_count = 0
     
     # Remove expired reviews
     expired_reviews = Review.query.filter(Review.expires_at < datetime.utcnow()).all()
     for review in expired_reviews:
         db.session.delete(review)
+        deleted_count += 1
     
     # Remove expired student food posts
     expired_posts = StudentFoodPost.query.filter(StudentFoodPost.expires_at < datetime.utcnow()).all()
     for post in expired_posts:
         db.session.delete(post)
+        deleted_count += 1
     
     # Remove expired menu items
     expired_items = MenuItem.query.filter(MenuItem.expires_at < datetime.utcnow()).all()
     for item in expired_items:
         db.session.delete(item)
+        deleted_count += 1
     
     db.session.commit()
+    return deleted_count
 
 
 class Notification(db.Model):
