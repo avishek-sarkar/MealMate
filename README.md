@@ -1,99 +1,170 @@
-<div align="center">
-
 # MealMate
 
-<p align="center">
-   <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=24&duration=2800&pause=1000&color=FF6B35&center=true&vCenter=true&width=760&height=56&lines=Connecting+Food+Lovers;Real-time+Campus+Food+Reviews;Discover+Posts%2C+Hotels%2C+and+Homemade+Food" alt="Typing SVG" />
-</p>
+<div align="center">
+
+![Typing](https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=24&duration=2800&pause=1000&color=FF6B35&center=true&vCenter=true&width=760&height=56&lines=Connecting+Food+Lovers;Real-time+Campus+Food+Reviews;Discover+Posts%2C+Hotels%2C+and+Homemade+Food)
 
 [![Flask](https://img.shields.io/badge/Flask-3.1.2-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Socket.IO](https://img.shields.io/badge/Socket.IO-5.5.1-010101?style=flat-square&logo=socket.io&logoColor=white)](https://socket.io/)
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-<p align="center">
-  A Flask web application for food reviews, hotel discovery, homemade food posts, and real-time notifications.
-</p>
-
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#technology-stack">Technology</a> •
-  <a href="#project-structure">Structure</a> •
-  <a href="#installation--setup">Setup</a> •
-  <a href="#default-login-credentials">Login</a> •
-  <a href="#api-documentation">API</a>
-</p>
-
 </div>
 
----
+## Project Overview
 
-## Overview
+MealMate is a real-time food discovery and community platform built for campus ecosystems. It connects students, local restaurants, and student cooks in one place, with live updates and a moderated workflow.
 
-MealMate is built for a campus food community where students can share reviews, explore restaurants, post homemade food, and get live updates through Socket.IO notifications. The project combines a clean Flask backend, a responsive front end, and an admin workflow for content moderation.
+## Why It Matters
 
-### Quick Facts
-
-| Item | Details |
-|:---|:---|
-| Framework | Flask 3.1.2 |
-| Database | SQLite with Flask-SQLAlchemy |
-| Real-time Layer | Flask-SocketIO 5.5.1 |
-| Authentication | Werkzeug password hashing |
-| Migrations | Flask-Migrate |
-| License | MIT |
-
----
-
-## Features
-
-### Core Product Areas
-- **Food reviews and posts**: Share experiences with local restaurants and dishes.
-- **Hotel discovery**: Browse restaurants and view menu-related information.
-- **Homemade food marketplace**: Post homemade food items for nearby users.
-- **Hotel owner dashboard**: Manage menu items and track listing activity.
-- **User authentication**: Separate flows for students, hotel owners, and admins.
-- **Admin panel**: Manage users, hotels, reviews, and food posts from one place.
-
-### Real-time Experience
-- **Live notifications**: New posts, likes, and comments appear instantly.
-- **Real-time interactions**: Post activity updates without page reloads.
-- **Socket.IO integration**: WebSocket communication between clients and server.
-- **Notification bell**: Unread count and animated notification state.
-- **Broadcast updates**: New content can be shown to all connected users.
-- **Live comments**: Comment submission with immediate feedback.
-
-### Platform Enhancements
-- **Content expiry**: Older content can be cleaned automatically.
-- **Responsive layout**: Works across desktop and mobile screens.
-- **Database integration**: SQLAlchemy models with relational structure.
-- **API endpoints**: JSON endpoints for content, interactions, and notifications.
-- **Local context**: Pricing and content conventions align with campus life.
-
----
+- Students can find reliable, affordable meals quickly.
+- Student cooks get a practical marketplace to sell homemade food.
+- Live reviews and notifications improve trust and decision-making.
+- Admin moderation and approvals keep the ecosystem safe.
 
 ## Technology Stack
 
-### Frontend
-- **Jinja2 3.1.6** templates.
-- **CSS** with responsive layout and animation support.
-- **Vanilla JavaScript** with a Socket.IO client.
-- **Admin UI** for moderation and management tasks.
+- Backend: Python 3.8+, Flask, SQLAlchemy, Werkzeug, Flask-Migrate
+- Real-time: Flask-SocketIO, python-socketio
+- Frontend: Jinja2 templates, vanilla JavaScript, CSS
+- Database: SQLite (development)
+- Configuration: python-dotenv
 
-### Backend
-- **Flask 3.1.2** for the web application.
-- **SQLite** with **Flask-SQLAlchemy 3.1.1** for persistence.
-- **Flask-SocketIO 5.5.1** for live notification delivery.
-- **Werkzeug security** helpers for password hashing and verification.
-- **Flask-Migrate 4.1.0** and **Alembic** for schema versioning.
+## System Architecture
 
-### Environment
-- **Python virtual environment** in `.venv`.
-- **python-dotenv 1.1.1** for environment variables.
-- **SQLite database** stored in `instance/mealmate.db`.
+```mermaid
+graph TD
+    User[Web User] <--> Web[Flask App]
+    Admin[Admin User] <--> Web
+    Web --> Auth[Auth and Sessions]
+    Web --> Realtime[Socket.IO Events]
+    Web --> ORM[SQLAlchemy ORM]
+    ORM <--> DB[(SQLite Database)]
+    Migrate[Flask-Migrate] --> DB
+```
 
----
+## Database Schema
+
+```mermaid
+erDiagram
+    ADMIN ||--o{ USER : approves
+    ADMIN ||--o{ HOTEL_OWNER : approves
+    USER ||--o{ REVIEW : writes
+    USER ||--o{ STUDENT_FOOD_POST : creates
+    USER ||--o{ NOTIFICATION : receives
+    USER ||--o{ POST_INTERACTION : performs
+    HOTEL_OWNER ||--o{ MENU_ITEM : manages
+    MENU_ITEM ||--o{ REVIEW : receives
+
+    USER {
+        int id
+        string username
+        string email
+        string password_hash
+    }
+    HOTEL_OWNER {
+        int id
+        string hotel_name
+        string email
+        string license_number
+    }
+    MENU_ITEM {
+        int id
+        string item_name
+        float price
+        boolean is_available
+    }
+    STUDENT_FOOD_POST {
+        int id
+        string title
+        float price
+        datetime expires_at
+    }
+```
+
+## Key Capabilities
+
+### All-in-One Platform for Foods
+
+- Students can find and compare foods quickly.
+- Hotel-owners can update their menus daily. 
+- Selling homemade food becomes easy.
+- Review system ensures quality. 
+
+### Real-time Notifications
+
+- Live alerts for posts, likes, and comments.
+- Personalized notification delivery through Socket.IO rooms.
+- Toast-style feedback for non-intrusive updates.
+
+### Authentication and Authorization
+
+- Multi-role login support for students, hotel owners, and admins.
+- Session-based auth with Werkzeug password hashing.
+- Admin approval flow for controlled onboarding.
+
+### Content Management
+
+- Image upload support for posts and food listings.
+- Live content updates across connected users.
+- Automatic cleanup support for older content.
+
+### Demo
+
+| Main Homepage | Homemade Food Marketplace |
+| --- | --- |
+| ![Homepage](Documentation/Homepage.png) | ![Homemade Food](Documentation/Homemade_food.png) |
+| **Hotel Menu Discovery** | **Admin Control Panel** |
+| ![Hotel Menu](Documentation/Hotel_menu.png) | ![Admin Dashboard](Documentation/Admin_dashboard.png) |
+
+## Security Features
+
+| Feature | Description |
+| --- | --- |
+| Environment variables | Sensitive values stay out of source code. |
+| Input validation | Validates data before persistence. |
+| Secure sessions | Uses Flask session handling. |
+| Role-based access checks | Route guards for user, owner, and admin sessions. |
+| Password hashing | Stores passwords with Werkzeug hash utilities. |
+| ORM queries | Reduces SQL injection risk. |
+
+## Installation and Setup
+
+1. Clone the repository.
+   ```bash
+   git clone https://github.com/avishek-sarkar/MealMate.git
+   cd MealMate
+   ```
+2. Create and activate a virtual environment.
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate
+   ```
+3. Install dependencies.
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Configure environment variables.
+   ```bash
+   copy .env.example .env
+   ```
+5. Initialize the database.
+   ```bash
+   python init_db.py
+   ```
+6. Run the server.
+   ```bash
+   python run.py
+   ```
+   Open http://127.0.0.1:5000
+
+## Default Credentials
+
+| User Type | Username Options | Password | Notes |
+| --- | --- | --- | --- |
+| Admin | admin | admin123 | Full access |
+| Students | avishek_sarkar, tamim5, mridula | password123 | Admin approval required |
+| Hotel Owners | hotel_sareng, mastercafe, chondrobindu | hotel123 | Admin approval required |
 
 ## Project Structure
 
@@ -135,183 +206,17 @@ MealMate/
         └── users.html
 ```
 
----
-
-## Installation & Setup
-
-### Prerequisites
-- Python 3.8 or higher
-- pip
-
-### Setup Steps
-1. Clone the repository.
-   ```bash
-   git clone https://github.com/avishek-sarkar/MealMate.git
-   cd MealMate
-   ```
-2. Create and activate a virtual environment.
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate
-   ```
-   On Linux or macOS, use `source .venv/bin/activate`.
-3. Install dependencies.
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Configure environment variables.
-   ```bash
-   copy .env.example .env
-   ```
-   Then update `.env` with your local values.
-5. Initialize the database.
-   ```bash
-   python init_db.py
-   ```
-6. Start the application.
-   ```bash
-   python run.py
-   ```
-   You can also run `python app.py` if preferred.
-7. Open the app in your browser.
-   ```text
-   http://127.0.0.1:5000
-   ```
-
----
-
-## Default Login Credentials
-
-| User Type | Username Options | Password | Role |
-|:---|:---|:---|:---|
-| Admin | `admin` | `admin123` | Full system administration |
-| Students | `avishek_sarkar`, `tamim5`, `mridula` | `password123` | Post reviews and homemade food |
-| Hotel Owners | `hotel_sareng`, `mastercafe`, `chondrobindu` | `hotel123` | Manage restaurant menus |
-
-**Quick access:**
-- Students use any student username with `password123`.
-- Hotel owners use any hotel username with `hotel123`.
-- Admin uses `admin` with `admin123`.
-
-Most accounts require admin approval before full access is granted.
-
----
-
-## Key Capabilities
-
-### Real-time Notifications
-- Live alerts for posts, likes, and comments.
-- Personalized notification delivery through Socket.IO rooms.
-- Toast-style feedback for non-intrusive updates.
-
-### Authentication and Authorization
-- Multi-role login support for students, hotel owners, and admins.
-- Session-based auth with Werkzeug password hashing.
-- Admin approval flow for controlled onboarding.
-
-### Content Management
-- Image upload support for posts and food listings.
-- Live content updates across connected users.
-- Automatic cleanup support for older content.
-
-### Database Design
-- SQLAlchemy ORM for structured data access.
-- Foreign keys and relationships for user, post, and hotel data.
-- Flask-Migrate support for schema evolution.
-
----
-
-## Security Features
-
-| Feature | Description |
-|:---|:---|
-| Environment variables | Sensitive values stay out of source code. |
-| Input validation | Validates data before persistence. |
-| Secure sessions | Uses Flask session handling. |
-| Role-based access checks | Route guards for user, owner, and admin sessions. |
-| Password hashing | Stores passwords with Werkzeug hash utilities. |
-| ORM queries | Reduces SQL injection risk. |
-
----
-
 ## API Documentation
 
-### Authentication
-```http
-POST /login
-POST /logout
-POST /register
-POST /register-hotel
-GET  /admin/login
-POST /admin/login
-GET  /admin/logout
-POST /admin/logout
-```
-
-### Content and Interactions
-```http
-GET  /api/posts
-GET  /api/hotels
-GET  /api/homemade-food
-GET  /api/menu-items/<hotel_id>
-GET  /api/notifications
-POST /api/post/like
-POST /api/post/comment
-GET  /api/post/interactions/<post_id>/<post_type>
-POST /post-review
-POST /post-food
-POST /cleanup-expired
-```
-
-### Hotel Owner Actions
-```http
-POST   /add-menu-item
-DELETE /delete-menu-item/<item_id>
-PUT    /toggle-menu-availability/<item_id>
-PUT    /update-menu-item/<item_id>
-GET    /menu-stats
-GET    /my-menu
-GET    /my-posts
-PUT    /update-profile
-POST   /update-profile
-PUT    /update-business
-POST   /update-business
-PUT    /change-password
-POST   /change-password
-```
-
-### Admin Actions
-```http
-GET    /admin/dashboard
-GET    /admin/users
-GET    /admin/hotels
-GET    /admin/reviews
-GET    /admin/food-posts
-POST   /admin/approve-user/<id>
-POST   /admin/approve-hotel/<id>
-DELETE /admin/delete-user/<id>
-DELETE /admin/delete-hotel/<id>
-DELETE /admin/delete-review/<id>
-DELETE /admin/delete-food-post/<id>
-```
-
----
+See [API_Documentation.md](Documentation/API_Documentation.md) for the complete API reference.
 
 ## Future Enhancements
 
-- Mobile app (React Native) for students and hotel owners.
-- Payment integration (bKash/Nagad) for direct transactions.
-- AI-powered recommendations and smarter food discovery.
-- Delivery workflow and order tracking for campus users.
-- Technical upgrades: PostgreSQL, Docker, CI/CD, Redis caching, and monitoring.
-
----
-
-## License
-
-MealMate is available under the [MIT License](LICENSE).
-
----
+- Mobile app for students and hotel owners.
+- Payment integration for direct transactions.
+- Recommendations and smarter discovery.
+- Delivery workflow and order tracking.
+- Production stack upgrades (PostgreSQL, Docker, CI/CD, caching, monitoring).
 
 ## Contributing
 
@@ -327,20 +232,6 @@ Contributions are welcome. Please report bugs, suggest improvements, or open pul
 
 ---
 
-## Support
+## Outro
 
-- Open an issue on GitHub.
-- Start a discussion if you have a question or feature request.
-- Contact the maintainers for project-specific support.
-
----
-
-<div align="center">
-
-**MealMate** - Connecting food lovers with real-time experiences, one meal at a time.
-
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=90&section=footer" alt="Footer" />
-</p>
-
-</div>
+MealMate brings campus food communities together with real-time updates, trustworthy reviews, and structured moderation. Thanks for taking some time to visit this repository. 
