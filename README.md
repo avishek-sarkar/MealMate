@@ -17,6 +17,8 @@ MealMate is a real-time food discovery and community platform built for campus e
 
 ## Why It Matters
 
+Students often find it challenging to choose where to eat because they cannot easily access menu details or assess food quality without physically visiting nearby restaurants. Furthermore, cooking for one person can be costly, whereas sharing homemade meals with others can reduce food waste and provide a source of passive income for home cooks. **MealMate** aims to solve these issues. Here,
+
 - Students can find reliable, affordable meals quickly.
 - Student cooks get a practical marketplace to sell homemade food.
 - Live reviews and notifications improve trust and decision-making.
@@ -114,7 +116,9 @@ erDiagram
 | Main Homepage | Homemade Food Marketplace |
 | --- | --- |
 | ![Homepage](Documentation/Homepage.png) | ![Homemade Food](Documentation/Homemade_food.png) |
-| **Hotel Menu Discovery** | **Admin Control Panel** |
+
+| Hotel Menu Discovery | Admin Control Panel |
+| --- | --- |
 | ![Hotel Menu](Documentation/Hotel_menu.png) | ![Admin Dashboard](Documentation/Admin_dashboard.png) |
 
 ## Security Features
@@ -179,6 +183,8 @@ MealMate/
 ├── run.py
 ├── .env.example
 ├── .gitignore
+├── Documentation/
+│   └── API_Documentation.md
 ├── instance/
 │   └── mealmate.db
 ├── migrations/
@@ -230,8 +236,8 @@ Contributions are welcome. Please report bugs, suggest improvements, or open pul
    </a>
 </p>
 
----
-
 ## Outro
 
 MealMate brings campus food communities together with real-time updates, trustworthy reviews, and structured moderation. Thanks for taking some time to visit this repository. 
+
+---
