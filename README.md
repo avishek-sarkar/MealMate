@@ -1,6 +1,6 @@
-# MealMate
-
 <div align="center">
+
+# MealMate
 
 ![Typing](https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=24&duration=2800&pause=1000&color=FF6B35&center=true&vCenter=true&width=760&height=56&lines=Connecting+Food+Lovers;Real-time+Campus+Food+Reviews;Discover+Posts%2C+Hotels%2C+and+Homemade+Food)
 
