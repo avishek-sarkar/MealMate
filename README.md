@@ -111,7 +111,7 @@ erDiagram
 - Live content updates across connected users.
 - Automatic cleanup support for older content.
 
-### Demo
+## Demo
 
 | Main Homepage | Homemade Food Marketplace |
 | --- | --- |
