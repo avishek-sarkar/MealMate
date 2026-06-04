@@ -38,6 +38,7 @@ Students often find it challenging to choose where to eat because they cannot ea
 graph TD
     User[Web User] <--> Web[Flask App]
     Admin[Admin User] <--> Web
+    Hotel[Hotel Owner] <--> Web
     Web --> Auth[Auth and Sessions]
     Web --> Realtime[Socket.IO Events]
     Web --> ORM[SQLAlchemy ORM]
@@ -58,29 +59,101 @@ erDiagram
     HOTEL_OWNER ||--o{ MENU_ITEM : manages
     MENU_ITEM ||--o{ REVIEW : receives
 
-    USER {
+    ADMIN {
         int id
         string username
         string email
         string password_hash
+        datetime created_at
+        boolean is_active
+        boolean is_super_admin
+    }
+    USER {
+        int id
+        string username
+        string reg_number
+        string email
+        string password_hash
+        datetime created_at
+        boolean is_active
+        boolean is_approved
+        int approved_by
+        datetime approved_at
     }
     HOTEL_OWNER {
         int id
-        string hotel_name
+        string username
         string email
+        string password_hash
+        string hotel_name
+        string hotel_address
+        string contact_number
         string license_number
+        boolean is_verified
+        boolean is_approved
+        int approved_by
+        datetime approved_at
+        datetime created_at
+        boolean is_active
     }
     MENU_ITEM {
         int id
+        int hotel_owner_id
         string item_name
+        string description
         float price
+        string category
+        string image_url
         boolean is_available
+        datetime created_at
+        datetime expires_at
     }
     STUDENT_FOOD_POST {
         int id
+        int user_id
         string title
+        string description
         float price
+        int quantity
+        string food_type
+        string cuisine
+        string location
+        string contact_info
+        string image_url
+        boolean is_available
+        datetime created_at
         datetime expires_at
+    }
+    REVIEW {
+        int id
+        int user_id
+        int menu_item_id
+        int rating
+        string comment
+        string image_url
+        datetime created_at
+        datetime expires_at
+    }
+    NOTIFICATION {
+        int id
+        int user_id
+        string type
+        string title
+        string message
+        int related_id
+        string related_type
+        boolean is_read
+        datetime created_at
+        datetime expires_at
+    }
+    POST_INTERACTION {
+        int id
+        int user_id
+        int post_id
+        string post_type
+        string interaction_type
+        string comment_text
+        datetime created_at
     }
 ```
 
@@ -184,14 +257,18 @@ MealMate/
 ├── .env.example
 ├── .gitignore
 ├── Documentation/
-│   └── API_Documentation.md
+│   ├── Admin_dashboard.png
+│   ├── API_Documentation.md
+│   ├── Homemade_food.png
+│   ├── Homepage.png
+│   └── Hotel_menu.png
 ├── instance/
 │   └── mealmate.db
 ├── migrations/
 │   ├── alembic.ini
 │   ├── env.py
 │   ├── script.py.mako
-│   └── README
+│   └── versions/
 ├── static/
 │   ├── css/
 │   │   ├── styles.css
